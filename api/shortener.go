@@ -1,7 +1,9 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -38,11 +40,29 @@ func (h *shortenerHandler) GetLinkInformation(c *gin.Context) {
 }
 
 func (h *shortenerHandler) ListLinks(c *gin.Context) {
-	// @TODO Implement me!
-	c.JSON(
-		http.StatusNotImplemented,
-		NewErrorResponse("nope, not yet. Try again later, boss"),
-	)
+	fmt.Println("ahahahah")
+	limitStr := c.Query("limit")
+	offsetStr := c.Query("offset")
+
+	limit, offset, message, err := validateLimitAndOffset(limitStr, offsetStr)
+	if err != nil {
+		c.JSON(
+			http.StatusBadRequest,
+			NewErrorResponse(message),
+		)
+		return
+	}
+
+	links, err := h.service.List(limit, offset)
+	if err != nil {
+		c.JSON(
+			http.StatusBadRequest,
+			NewErrorResponse("kaput, no links for you"),
+		)
+		return
+	}
+
+	c.JSON(http.StatusOK, links)
 }
 
 func (h *shortenerHandler) CreateLink(c *gin.Context) {
@@ -74,4 +94,30 @@ func (h *shortenerHandler) RemoveLink(c *gin.Context) {
 		http.StatusNotImplemented,
 		NewErrorResponse("nope, not yet. Try again later, boss"),
 	)
+}
+
+func validateLimitAndOffset(limitStr, offsetStr string) (int, int, string, error) {
+	limit := 0
+	offset := 0
+	var err error
+
+	if limitStr != "" {
+		limit, err = strconv.Atoi(limitStr)
+		if err != nil {
+			return 0, 0, "invalid limit parameter", err
+		}
+	} else {
+		limit = 0
+	}
+
+	if offsetStr != "" {
+		offset, err = strconv.Atoi(offsetStr)
+		if err != nil {
+			return 0, 0, "invalid offset parameter", err
+		}
+	} else {
+		offset = 0
+	}
+
+	return limit, offset, "", err
 }
