@@ -3,8 +3,9 @@ package api
 import (
 	"net/http"
 
-	"github.com/doutorfinancas/pun-sho/convert"
 	"github.com/gin-gonic/gin"
+
+	"github.com/doutorfinancas/pun-sho/str"
 )
 
 type urlHandler struct {
@@ -23,7 +24,7 @@ func (h *urlHandler) Routes(rg *gin.RouterGroup) {
 }
 
 func (h *urlHandler) Group() *string {
-	return convert.ToStringNil("s")
+	return str.ToStringNil("s")
 }
 
 func (h *urlHandler) RedirectLinkIfExists(c *gin.Context) {

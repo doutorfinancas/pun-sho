@@ -5,10 +5,14 @@ import (
 	"time"
 
 	"github.com/Netflix/go-env"
-	"github.com/doutorfinancas/pun-sho/api"
 	"github.com/subosito/gotenv"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/doutorfinancas/pun-sho/api"
+	"github.com/doutorfinancas/pun-sho/database"
+	"github.com/doutorfinancas/pun-sho/entity"
+	"github.com/doutorfinancas/pun-sho/service"
 )
 
 const Timestamp = "timestamp"
@@ -21,8 +25,17 @@ func main() {
 	log, _ := loggerConfig.Build()
 	cfg := &api.Config{}
 	handleEnv(log, cfg)
+	g, err := database.Connect(cfg.GetDatabaseConfig())
+	if err != nil {
+		log.Fatal("can't connect to database")
+	}
+	db := database.NewDatabase(g)
 
-	a := api.NewAPI(log, cfg)
+	shortyRepo := entity.NewShortyRepository(db, log)
+	shortyAccessRepo := entity.NewShortyAccessRepository(db, log)
+	shortySvc := service.NewShortyService(log, shortyRepo, shortyAccessRepo)
+
+	a := api.NewAPI(log, cfg, shortySvc)
 
 	a.Run()
 }

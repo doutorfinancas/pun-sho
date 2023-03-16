@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS pun_sho.shorty_accesses (
     user_agent string,
     ip_address string,
     extra string,
+    operating_system STRING,
+    browser STRING,
     created_at TIMESTAMP DEFAULT now(),
     INDEX (shorty_id),
     INDEX (ip_address),
@@ -25,4 +27,4 @@ CREATE TABLE IF NOT EXISTS pun_sho.shorty_accesses (
     INDEX (extra)
 );
 
-CREATE INDEX pun_sho.shorty_accesses_meta ON shorty_accesses USING GIN (meta);
+CREATE INDEX shorty_accesses_meta ON pun_sho.shorty_accesses USING GIN (meta);

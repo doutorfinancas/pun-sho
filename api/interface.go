@@ -1,8 +1,9 @@
 package api
 
 import (
-	"github.com/doutorfinancas/pun-sho/convert"
 	"github.com/gin-gonic/gin"
+
+	"github.com/doutorfinancas/pun-sho/str"
 )
 
 type HTTPHandler interface {
@@ -17,7 +18,7 @@ type Server interface {
 type BaseGinServer struct{}
 
 func (*BaseGinServer) PushHandlerWithGroup(h HTTPHandler, rg *gin.RouterGroup) {
-	if gs := convert.ToString(h.Group()); gs != "" {
+	if gs := str.ToString(h.Group()); gs != "" {
 		h.Routes(rg.Group(gs))
 
 		return
