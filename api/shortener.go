@@ -39,7 +39,7 @@ func (h *shortenerHandler) GetLinkInformation(c *gin.Context) {
 			NewErrorResponse("no id provided"),
 		)
 	}
-	parsed := uuid.MustParse("69359037-9599-48e7-b8f2-48393c019135")
+	parsed := uuid.MustParse(id)
 	shorty, err := h.service.FindShortyByID(parsed)
 	if err != nil {
 		c.JSON(http.StatusNotFound, "shorty not found")
