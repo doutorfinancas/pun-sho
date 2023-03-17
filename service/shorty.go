@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 
 	"github.com/doutorfinancas/pun-sho/api/request"
@@ -53,4 +54,16 @@ func (s ShortyService) List(limit, offset int) ([]*entity.Shorty, error) {
 	}
 
 	return shorties, nil
+}
+
+func (s *ShortyService) FindShortyByID(id uuid.UUID) (*entity.Shorty, error) {
+	m := &entity.Shorty{
+		ID: id,
+	}
+
+	if err := s.shortyRepository.Database.FetchOne(m); err != nil {
+		return nil, err
+	}
+
+	return m, nil
 }

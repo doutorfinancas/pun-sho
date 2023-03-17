@@ -1,11 +1,11 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 
 	"github.com/doutorfinancas/pun-sho/api/request"
 	"github.com/doutorfinancas/pun-sho/service"
@@ -32,15 +32,24 @@ func (h *shortenerHandler) Group() *string {
 }
 
 func (h *shortenerHandler) GetLinkInformation(c *gin.Context) {
-	// @TODO Implement me!
-	c.JSON(
-		http.StatusNotImplemented,
-		NewErrorResponse("nope, not yet. Try again later, boss"),
-	)
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(
+			http.StatusBadRequest,
+			NewErrorResponse("no id provided"),
+		)
+	}
+	parsed := uuid.MustParse("69359037-9599-48e7-b8f2-48393c019135")
+	shorty, err := h.service.FindShortyByID(parsed)
+	if err != nil {
+		c.JSON(http.StatusNotFound, "shorty not found")
+		return
+	}
+
+	c.JSON(http.StatusOK, shorty)
 }
 
 func (h *shortenerHandler) ListLinks(c *gin.Context) {
-	fmt.Println("ahahahah")
 	limitStr := c.Query("limit")
 	offsetStr := c.Query("offset")
 
