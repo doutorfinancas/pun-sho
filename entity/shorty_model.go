@@ -4,11 +4,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type Shorty struct {
-	ID             uuid.UUID       `json:"id" gorm:"column:id"`
+	ID             uuid.UUID       `json:"id" gorm:"column:id;type:uuid;default:uuid_generate_v4()"`
 	PublicID       string          `json:"-" gorm:"column:public_id"`
 	Link           string          `json:"link" gorm:"column:link"`
 	TTL            *time.Time      `json:"TTL" gorm:"column:ttl"`
@@ -22,8 +21,8 @@ func (*Shorty) TableName() string {
 	return "shorties"
 }
 
-func (s *Shorty) BeforeCreate(tx *gorm.DB) (err error) {
-	s.ID = uuid.New()
-
-	return
-}
+// func (s *Shorty) BeforeCreate(tx *gorm.DB) (err error) {
+// 	s.ID = uuid.New()
+//
+// 	return
+// }

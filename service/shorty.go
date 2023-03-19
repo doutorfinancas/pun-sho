@@ -4,17 +4,24 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-
-	"github.com/google/uuid"
-	"github.com/mileusna/useragent"
-	"go.uber.org/zap"
+	"time"
 
 	"github.com/doutorfinancas/pun-sho/api/request"
 	"github.com/doutorfinancas/pun-sho/entity"
 	"github.com/doutorfinancas/pun-sho/str"
+	"github.com/google/uuid"
+	"github.com/mileusna/useragent"
+	"go.uber.org/zap"
 )
 
-const PublicIDSize = 10
+const (
+	PublicIDSize     = 10
+	StatusRedirected = "redirected"
+	StatusBlocked    = "blocked"
+	StatusExpired    = "expired"
+	StatusDeleted    = "deleted"
+	VersionStringify = "%s %s"
+)
 
 type ShortyService struct {
 	hostName               string
@@ -53,30 +60,43 @@ func (s *ShortyService) Create(req *request.CreateShorty) (*entity.Shorty, error
 	return m, nil
 }
 
-func (s *ShortyService) CreateVisit(publicID string, userAgent string) (*entity.Shorty, error) {
+func (s *ShortyService) CreateVisit(publicID string, req *request.Redirect) (*entity.Shorty, error) {
 	sh, err := s.FindShortyByPublicID(publicID)
 	if err != nil {
 		return nil, err
 	}
 
-	status := "redirected"
+	status := StatusRedirected
+	if sh.DeletedAt != nil {
+		status = StatusDeleted
+	}
 
-	ua := useragent.Parse(userAgent)
+	if sh.TTL != nil && sh.TTL.Before(time.Now()) {
+		status = StatusExpired
+	}
+
+	ua := useragent.Parse(req.UserAgent)
+	if ua.Bot {
+		status = StatusBlocked
+	}
 
 	m := &entity.ShortyAccess{
 		ShortyID:        sh.ID,
 		Status:          status,
-		UserAgent:       userAgent,
-		Browser:         ua.Name,
-		OperatingSystem: ua.OS,
+		UserAgent:       req.UserAgent,
+		IPAddress:       req.IP,
+		Browser:         fmt.Sprintf(VersionStringify, ua.Name, ua.Version),
+		OperatingSystem: fmt.Sprintf(VersionStringify, ua.OS, ua.OSVersion),
+		Extra:           req.Extra,
+		Meta:            req.Meta,
 	}
 
 	if err := s.shortyAccessRepository.Create(m); err != nil {
 		return nil, err
 	}
 
-	if ua.Bot {
-		return nil, errors.New("no bots or crawlers for redirection")
+	if status != StatusRedirected {
+		return nil, errors.New(fmt.Sprintf("could not redirect due to status %s", status))
 	}
 
 	return sh, nil
