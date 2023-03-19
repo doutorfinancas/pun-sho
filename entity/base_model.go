@@ -8,8 +8,8 @@ import (
 )
 
 type BaseModel struct {
-	ID        uuid.UUID  ` gorm:"column:id"`
-	CreatedAt *time.Time `gorm:"column:created_at"`
+	ID        uuid.UUID  `json:"-" gorm:"column:id"`
+	CreatedAt *time.Time `json:"created_at" gorm:"column:created_at"`
 }
 
 func (b *BaseModel) BeforeCreate(_ *gorm.DB) (err error) {

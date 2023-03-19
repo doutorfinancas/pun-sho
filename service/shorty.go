@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/doutorfinancas/pun-sho/api/request"
 	"github.com/doutorfinancas/pun-sho/entity"
 	"github.com/doutorfinancas/pun-sho/str"
@@ -88,8 +89,9 @@ func (s *ShortyService) CreateVisit(publicID string, req *request.Redirect) (*en
 		Browser:         fmt.Sprintf(VersionStringify, ua.Name, ua.Version),
 		OperatingSystem: fmt.Sprintf(VersionStringify, ua.OS, ua.OSVersion),
 		Extra:           req.Extra,
-		Meta:            req.Meta,
 	}
+
+	m.Meta = m.ConvertMeta(req.Meta)
 
 	if err := s.shortyAccessRepository.Create(m); err != nil {
 		return nil, err
@@ -119,6 +121,27 @@ func (s *ShortyService) FindShortyByID(id uuid.UUID) (*entity.Shorty, error) {
 	if err := s.shortyRepository.Database.FetchOne(m); err != nil {
 		return nil, err
 	}
+
+	var sh []entity.ShortyAccess
+
+	_ = s.shortyAccessRepository.Database.FetchAll(
+		&entity.ShortyAccess{ShortyID: id},
+		&sh,
+	)
+
+	spew.Dump(sh)
+
+	m.ShortyAccesses = sh
+
+	m.Visits = len(sh)
+	m.RedirectCount = func(a []entity.ShortyAccess) (tmp int) {
+		for _, v := range a {
+			if v.Status == StatusRedirected {
+				tmp++
+			}
+		}
+		return
+	}(sh)
 
 	return m, nil
 }
