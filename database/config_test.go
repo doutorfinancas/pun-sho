@@ -10,16 +10,16 @@ import (
 
 func TestConfig_ConnectionString(t *testing.T) {
 	type fields struct {
-		Host     str
+		Host     string
 		Port     int
-		Database str
-		User     str
-		Pass     str
+		Database string
+		User     string
+		Pass     string
 	}
 	tests := []struct {
-		name   str
+		name   string
 		fields fields
-		want   *str
+		want   *string
 	}{
 		{
 			"Connection Successful",

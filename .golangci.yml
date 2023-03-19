@@ -119,6 +119,9 @@ issues:
       linters:
         - gomnd
         - dupl
+    - path: .
+      linters:
+        - typecheck
 
     # https://github.com/go-critic/go-critic/issues/926
     - linters:

@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/gin-contrib/gzip"
@@ -38,7 +39,7 @@ func (a *API) Run() {
 		gzip.Gzip(gzip.DefaultCompression),
 	)
 
-	a.PushHandlerWithGroup(NewURLHandler(a.config.UnknownPage), g.Group("/"))
+	a.PushHandlerWithGroup(NewURLHandler(a.config.UnknownPage, a.service), g.Group("/"))
 
 	authMiddleware := NewAuthenticationMiddleware(a.config.Token)
 
@@ -49,4 +50,30 @@ func (a *API) Run() {
 	if err := g.Run(fmt.Sprintf(":%d", a.config.Port)); err != nil {
 		a.log.Fatal(err.Error())
 	}
+}
+
+func validateLimitAndOffset(limitStr, offsetStr string) (int, int, string, error) {
+	limit := 0
+	offset := 0
+	var err error
+
+	if limitStr != "" {
+		limit, err = strconv.Atoi(limitStr)
+		if err != nil {
+			return 0, 0, "invalid limit parameter", err
+		}
+	} else {
+		limit = 0
+	}
+
+	if offsetStr != "" {
+		offset, err = strconv.Atoi(offsetStr)
+		if err != nil {
+			return 0, 0, "invalid offset parameter", err
+		}
+	} else {
+		offset = 0
+	}
+
+	return limit, offset, "", err
 }

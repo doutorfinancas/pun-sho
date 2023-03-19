@@ -2,7 +2,6 @@ package api
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -103,30 +102,4 @@ func (h *shortenerHandler) RemoveLink(c *gin.Context) {
 		http.StatusNotImplemented,
 		NewErrorResponse("nope, not yet. Try again later, boss"),
 	)
-}
-
-func validateLimitAndOffset(limitStr, offsetStr string) (int, int, string, error) {
-	limit := 0
-	offset := 0
-	var err error
-
-	if limitStr != "" {
-		limit, err = strconv.Atoi(limitStr)
-		if err != nil {
-			return 0, 0, "invalid limit parameter", err
-		}
-	} else {
-		limit = 0
-	}
-
-	if offsetStr != "" {
-		offset, err = strconv.Atoi(offsetStr)
-		if err != nil {
-			return 0, 0, "invalid offset parameter", err
-		}
-	} else {
-		offset = 0
-	}
-
-	return limit, offset, "", err
 }

@@ -14,6 +14,7 @@ type ShortyAccess struct {
 	Extra           string       `gorm:"column:extra"`
 	OperatingSystem string       `gorm:"column:operating_system"`
 	Browser         string       `gorm:"column:browser"`
+	Status          string       `gorm:"column:status"`
 }
 
 func (ShortyAccess) TableName() string {

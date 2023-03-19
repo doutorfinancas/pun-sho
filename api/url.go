@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	"github.com/doutorfinancas/pun-sho/service"
 	"github.com/gin-gonic/gin"
 
 	"github.com/doutorfinancas/pun-sho/str"
@@ -10,11 +11,13 @@ import (
 
 type urlHandler struct {
 	unknownPage string
+	service     *service.ShortyService
 }
 
-func NewURLHandler(unknownPage string) HTTPHandler {
+func NewURLHandler(unknownPage string, svc *service.ShortyService) HTTPHandler {
 	return &urlHandler{
 		unknownPage: unknownPage,
+		service:     svc,
 	}
 }
 
@@ -34,8 +37,10 @@ func (h *urlHandler) RedirectLinkIfExists(c *gin.Context) {
 		return
 	}
 
-	// @TODO Check if link exists
-	// @TODO if it does, redirect
+	sho, err := h.service.CreateVisit(slug, c.Request.UserAgent())
+	if err != nil {
+		c.Redirect(http.StatusMovedPermanently, h.unknownPage)
+	}
 
-	c.Redirect(http.StatusMovedPermanently, h.unknownPage)
+	c.Redirect(http.StatusMovedPermanently, sho.Link)
 }
