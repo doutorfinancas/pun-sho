@@ -29,12 +29,8 @@ test/cover:
 
 .PHONY: migration/create
 migration/create:
-	@if [ "${DB_ADAPTOR}" == "cockroach" ]; then \
-		read -p "Enter migration name: " MIGRATION_NAME; \
-		migrate create -ext sql -dir db_migrations -seq $${MIGRATION_NAME}; \
-	elif [ "${DB_ADAPTOR}" == "postgres" ]; then \
-		echo "not yet, boss"; \
-	fi
+	@read -p "Enter migration name: " MIGRATION_NAME; \
+	migrate create -ext sql -dir db_migrations -seq $${MIGRATION_NAME}; \
 
 .PHONY: migration/up
 migration/up:
@@ -42,7 +38,8 @@ migration/up:
 		read -p "Enter version number: (empty for all) " VERSION_NUMBER; \
 		migrate -database ${COCKROACHDB_URL} -path db_migrations up $${VERSION_NUMBER}; \
 	elif [ "${DB_ADAPTOR}" == "postgres" ]; then \
-		echo "not yet, boss"; \
+		read -p "Enter version number: (empty for all) " VERSION_NUMBER; \
+		migrate -database ${POSTGRES_URL} -path db_migrations up $${VERSION_NUMBER}; \
 	fi
 
 
@@ -52,7 +49,8 @@ migration/clean:
 		read -p "Enter version number: (empty for all) " VERSION_NUMBER; \
 		migrate -database ${COCKROACHDB_URL} -path db_migrations down $${VERSION_NUMBER}; \
 	elif [ "${DB_ADAPTOR}" == "postgres" ]; then \
-		echo "not yet, boss"; \
+		read -p "Enter version number: (empty for all) " VERSION_NUMBER; \
+		migrate -database ${POSTGRES_URL} -path db_migrations down $${VERSION_NUMBER}; \
 	fi
 
 
@@ -62,5 +60,10 @@ migration/force:
 		read -p "Enter version number: " VERSION_NUMBER; \
 		migrate -database ${COCKROACHDB_URL} -path db_migrations force $${VERSION_NUMBER}; \
 	elif [ "${DB_ADAPTOR}" == "postgres" ]; then \
-		echo "not yet, boss"; \
+		read -p "Enter version number: " VERSION_NUMBER; \
+		migrate -database ${POSTGRES_URL} -path db_migrations force $${VERSION_NUMBER}; \
 	fi
+
+.PHONY: image-push
+image-push:
+	@build-tools/tag.sh

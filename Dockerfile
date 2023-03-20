@@ -1,15 +1,20 @@
 # Start from golang base image
-FROM golang:1.20.1-alpine3.17
+FROM golang:1.20.1-alpine3.17 as build
 
-# Install git.
-# Git is required for fetching the dependencies.
-RUN apk update && apk add --no-cache git bash build-base
+LABEL org.opencontainers.image.source https://github.com/doutorfinancas/pun-sho
 
-RUN go install github.com/cosmtrek/air@latest
-RUN export PATH="${GOPATH}/bin:${PATH}"
+COPY . /pun_sho
 
-# Expose port 8080 to the outside world
-EXPOSE 8080
+WORKDIR /pun_sho
 
-# Run the executable
-ENTRYPOINT ["air", "run", "main.go"]
+RUN go mod download
+
+RUN CGO_ENABLED=0 go build -o /pun-sho main.go
+
+FROM alpine:3.17.2
+
+COPY --from=build /pun-sho /pun-sho
+
+RUN chmod +x /pun-sho
+
+ENTRYPOINT ["/pun-sho"]

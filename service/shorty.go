@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/doutorfinancas/pun-sho/api/request"
 	"github.com/doutorfinancas/pun-sho/entity"
 	"github.com/doutorfinancas/pun-sho/str"
@@ -128,8 +127,6 @@ func (s *ShortyService) FindShortyByID(id uuid.UUID) (*entity.Shorty, error) {
 		&entity.ShortyAccess{ShortyID: id},
 		&sh,
 	)
-
-	spew.Dump(sh)
 
 	m.ShortyAccesses = sh
 
