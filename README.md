@@ -1,5 +1,12 @@
 # pun-sho
-Powerful URL Narrower - a Shortener, HOmbre
+
+[![Latest Release](https://img.shields.io/github/v/release/doutorfinancas/pun-sho)](https://github.com/doutorfinancas/pun-sho/releases)
+[![CircleCI](https://circleci.com/gh/circleci/circleci-docs.svg?style=shield)](https://circleci.com/gh/doutorfinancas/pun-sho)
+[![codecov](https://codecov.io/gh/doutorfinancas/pun-sho/branch/master/graph/badge.svg?token=JewR1OJdZM)](https://codecov.io/gh/doutorfinancas/pun-sho)
+[![Github Actions](https://github.com/doutorfinancas/pun-sho/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/doutorfinancas/pun-sho/actions)
+[![APACHE-2.0 License](https://img.shields.io/github/license/doutorfinancas/pun-sho)](LICENSE)
+
+PUNy-SHOrtener - Yet Another URL Shortener
 
 ![Panchooooo](img/pun-sho.png)
 
