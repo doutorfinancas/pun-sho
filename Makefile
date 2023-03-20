@@ -1,4 +1,4 @@
-include .env
+-include .env
 export
 
 export COCKROACHDB_URL="cockroachdb://$$DB_USERNAME:$$DB_PASSWORD@$$DB_URL:$$DB_PORT/$$DB_NAME?sslmode=verify-full"
