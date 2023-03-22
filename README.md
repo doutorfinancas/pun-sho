@@ -5,6 +5,7 @@
 [![codecov](https://codecov.io/gh/doutorfinancas/pun-sho/branch/master/graph/badge.svg?token=JewR1OJdZM)](https://codecov.io/gh/doutorfinancas/pun-sho)
 [![Github Actions](https://github.com/doutorfinancas/pun-sho/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/doutorfinancas/pun-sho/actions)
 [![APACHE-2.0 License](https://img.shields.io/github/license/doutorfinancas/pun-sho)](LICENSE)
+[![CodeFactor](https://www.codefactor.io/repository/github/doutorfinancas/pun-sho/badge)](https://www.codefactor.io/repository/github/doutorfinancas/pun-sho)
 
 PUNy-SHOrtener - Yet Another URL Shortener
 
