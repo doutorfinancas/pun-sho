@@ -42,7 +42,6 @@ migration/up:
 		migrate -database ${POSTGRES_URL} -path db_migrations up $${VERSION_NUMBER}; \
 	fi
 
-
 .PHONY: migration/clean
 migration/clean:
 	@if [ "${DB_ADAPTOR}" == "cockroach" ]; then \
@@ -52,7 +51,6 @@ migration/clean:
 		read -p "Enter version number: (empty for all) " VERSION_NUMBER; \
 		migrate -database ${POSTGRES_URL} -path db_migrations down $${VERSION_NUMBER}; \
 	fi
-
 
 .PHONY: migration/force
 migration/force:

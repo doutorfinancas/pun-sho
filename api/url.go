@@ -56,7 +56,9 @@ func (h *urlHandler) RedirectLinkIfExists(c *gin.Context) {
 	sho, err := h.service.CreateVisit(slug, req)
 	if err != nil {
 		c.Redirect(http.StatusMovedPermanently, h.unknownPage)
+		return
 	}
 
+	c.Header("Cache-Control", "private, max-age=90")
 	c.Redirect(http.StatusMovedPermanently, sho.Link)
 }
