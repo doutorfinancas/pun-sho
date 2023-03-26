@@ -1,3 +1,7 @@
+SHELL         := /usr/bin/env bash
+.DEFAULT_GOAL := generate/mocks
+.SUFFIXES:
+
 -include .env
 export
 
