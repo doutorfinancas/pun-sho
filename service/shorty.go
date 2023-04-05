@@ -6,12 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/doutorfinancas/pun-sho/api/request"
-	"github.com/doutorfinancas/pun-sho/entity"
-	"github.com/doutorfinancas/pun-sho/str"
 	"github.com/google/uuid"
 	"github.com/mileusna/useragent"
 	"go.uber.org/zap"
+
+	"github.com/doutorfinancas/pun-sho/api/request"
+	"github.com/doutorfinancas/pun-sho/entity"
+	"github.com/doutorfinancas/pun-sho/str"
 )
 
 const (
