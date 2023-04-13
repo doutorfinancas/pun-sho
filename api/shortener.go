@@ -23,7 +23,7 @@ func (h *shortenerHandler) Routes(rg *gin.RouterGroup) {
 	rg.GET("/:id", h.GetLinkInformation)
 	rg.GET("", h.ListLinks)
 	rg.POST("", h.CreateLink)
-	rg.DELETE("", h.RemoveLink)
+	rg.DELETE("/:id", h.RemoveLink)
 }
 
 func (h *shortenerHandler) Group() *string {
@@ -97,9 +97,20 @@ func (h *shortenerHandler) CreateLink(c *gin.Context) {
 }
 
 func (h *shortenerHandler) RemoveLink(c *gin.Context) {
-	// @TODO Implement me!
-	c.JSON(
-		http.StatusNotImplemented,
-		NewErrorResponse("nope, not yet. Try again later, boss"),
-	)
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(
+			http.StatusBadRequest,
+			NewErrorResponse("no id provided"),
+		)
+	}
+	parsed := uuid.MustParse(id)
+	err := h.service.DeleteShortyByUUID(parsed)
+	if err != nil {
+		c.JSON(
+			http.StatusBadRequest,
+			NewErrorResponse("kaput, no delete"),
+		)
+	}
+	c.JSON(http.StatusOK, nil)
 }

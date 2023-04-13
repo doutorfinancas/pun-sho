@@ -155,3 +155,12 @@ func (s *ShortyService) FindShortyByPublicID(publicID string) (*entity.Shorty, e
 
 	return m, nil
 }
+
+func (s *ShortyService) DeleteShortyByUUID(id uuid.UUID) error {
+	err := s.shortyRepository.Delete(id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
