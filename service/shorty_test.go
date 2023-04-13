@@ -34,7 +34,7 @@ func TestShortyService_Create(t *testing.T) {
 			},
 		},
 	)
-	req := `INSERT INTO "shorties" ("public_id","link","ttl","created_at","deleted_at") VALUES ($1,$2,$3,$4,$5)`
+	req := `INSERT INTO "shorties" ("public_id","link","ttl","created_at","deleted_at","qr_code") VALUES ($1,$2,$3,$4,$5,$6) RETURNING "id"`
 	m.ExpectBegin()
 	m.ExpectQuery(regexp.QuoteMeta(req)).WithArgs().WillReturnRows(rows)
 	m.ExpectCommit()

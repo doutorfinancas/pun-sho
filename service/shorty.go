@@ -1,13 +1,18 @@
 package service
 
 import (
+	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/doutorfinancas/pun-sho/buf"
 	"github.com/google/uuid"
 	"github.com/mileusna/useragent"
+	"github.com/yeqown/go-qrcode/v2"
+	"github.com/yeqown/go-qrcode/writer/standard"
 	"go.uber.org/zap"
 
 	"github.com/doutorfinancas/pun-sho/api/request"
@@ -16,29 +21,33 @@ import (
 )
 
 const (
-	PublicIDSize     = 10
-	StatusRedirected = "redirected"
-	StatusBlocked    = "blocked"
-	StatusExpired    = "expired"
-	StatusDeleted    = "deleted"
-	VersionStringify = "%s %s"
+	PublicIDSize          = 10
+	StatusRedirected      = "redirected"
+	StatusBlocked         = "blocked"
+	StatusExpired         = "expired"
+	StatusDeleted         = "deleted"
+	VersionStringify      = "%s %s"
+	TransparentBackground = "transparent"
 )
 
 type ShortyService struct {
 	hostName               string
+	logo                   string
 	log                    *zap.Logger
 	shortyRepository       *entity.ShortyRepository
 	shortyAccessRepository *entity.ShortyAccessRepository
 }
 
 func NewShortyService(
-	hostName string,
+	hostName,
+	logo string,
 	log *zap.Logger,
 	shortyRepository *entity.ShortyRepository,
 	shortyAccessRepository *entity.ShortyAccessRepository,
 ) *ShortyService {
 	return &ShortyService{
 		hostName:               strings.TrimSuffix(hostName, "/"),
+		logo:                   logo,
 		log:                    log,
 		shortyRepository:       shortyRepository,
 		shortyAccessRepository: shortyAccessRepository,
@@ -52,11 +61,67 @@ func (s *ShortyService) Create(req *request.CreateShorty) (*entity.Shorty, error
 		TTL:      req.TTL,
 	}
 
+	m.ShortLink = fmt.Sprintf("%s/s/%s", s.hostName, m.PublicID)
+	if req.QRCode != nil && req.QRCode.Create {
+		qrc, err := qrcode.New(m.ShortLink)
+		if err != nil {
+			return nil, err
+		}
+
+		bgColor := standard.WithBgColorRGBHex("#ffffff")
+		fgColor := standard.WithFgColorRGBHex("#000000")
+
+		if str.SubString(req.QRCode.BgColor, 0, 1) == "#" {
+			bgColor = standard.WithBgColorRGBHex(req.QRCode.BgColor)
+		}
+
+		if req.QRCode.BgColor == TransparentBackground {
+			bgColor = standard.WithBgTransparent()
+		}
+
+		if str.SubString(req.QRCode.FgColor, 0, 1) == "#" {
+			fgColor = standard.WithFgColorRGBHex(req.QRCode.FgColor)
+		}
+
+		options := []standard.ImageOption{
+			bgColor,
+			fgColor,
+			standard.WithBuiltinImageEncoder(standard.PNG_FORMAT),
+		}
+
+		if s.logo != "" {
+			fmt.Println(s.logo)
+			options = append(options, standard.WithLogoImageFilePNG(s.logo))
+		}
+
+		if req.QRCode.Width > 0 {
+			options = append(options, standard.WithQRWidth(uint8(req.QRCode.Width)))
+		}
+
+		if req.QRCode.BorderWidth > 0 {
+			options = append(options, standard.WithBorderWidth(req.QRCode.BorderWidth))
+		}
+
+		if req.QRCode.Shape == "circle" {
+			options = append(options, standard.WithCircleShape())
+		}
+
+		var b []byte
+		x := bytes.NewBuffer(b)
+		w := buf.NewWriteCloser(x)
+		wr := standard.NewWithWriter(w, options...)
+
+		err = qrc.Save(wr)
+		if err != nil {
+			return nil, err
+		}
+
+		m.QRCode = "data:image/png;base64," + base64.StdEncoding.EncodeToString(x.Bytes())
+	}
+
 	if err := s.shortyRepository.Create(m); err != nil {
 		return nil, err
 	}
-
-	m.ShortLink = fmt.Sprintf("%s/s/%s", s.hostName, m.PublicID)
 
 	return m, nil
 }

@@ -17,6 +17,7 @@ type Shorty struct {
 	ShortLink      string         `json:"short_link" gorm:"-"`
 	Visits         int            `json:"visits" gorm:"-"`
 	RedirectCount  int            `json:"redirects" gorm:"-"`
+	QRCode         string         `json:"qr_code,omitempty" gorm:"column:qr_code"`
 }
 
 func (*Shorty) TableName() string {

@@ -70,7 +70,29 @@ make migration/clean
 
 ### Create a short link
 ```bash
-curl -H 'token: Whatever_Token_you_put_in_your_env' -XPOST -d '{"link": "https://www.google.pt/", "TTL": "2023-03-25T23:59:59Z"}' https://yourdomain.something/api/v1/short
+read -r -d '' BODY <<EOF
+{                
+  "link": "https://www.google.pt/",
+  "TTL": "2023-03-25T23:59:59Z",
+  "qr_code": {
+    "create": true,
+    "width" : 50,
+    "height": 50,
+    "foreground_color": "#000000",
+    "background_color": "#ffffff",
+    "shape": "circle"
+  }
+}
+EOF
+
+# you could use "background_color": "transparent" to request a png without background
+# by setting env property QR_PNG_LOGO to a png filepath, 
+# it will overlay the logo on qrcode center
+
+curl -XPOST https://yourdomain.something/api/v1/short \
+  -H 'token: Whatever_Token_you_put_in_your_env' \
+  -H 'Content-Type: application/json' \
+  -d $BODY 
 ```
 
 this would render an answer like:
