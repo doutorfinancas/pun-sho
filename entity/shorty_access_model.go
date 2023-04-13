@@ -5,20 +5,22 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 )
 
 type ShortyAccess struct {
-	BaseModel
-	ShortyID        uuid.UUID `json:"-" gorm:"column:shorty_id"`
-	Meta            Meta      `json:"meta" gorm:"column:meta; type:JSONB"`
-	UserAgent       string    `json:"user_agent" gorm:"column:user_agent"`
-	IPAddress       string    `json:"ip" gorm:"column:ip_address"`
-	Extra           string    `json:"extra" gorm:"column:extra"`
-	OperatingSystem string    `json:"os" gorm:"column:operating_system"`
-	Browser         string    `json:"browser" gorm:"column:browser"`
-	Status          string    `json:"status" gorm:"column:status"`
+	ID              uuid.UUID  `json:"id" gorm:"column:id;type:uuid;default:uuid_generate_v4()"`
+	CreatedAt       *time.Time `json:"created_at" gorm:"column:created_at"`
+	ShortyID        uuid.UUID  `json:"-" gorm:"column:shorty_id"`
+	Meta            Meta       `json:"meta" gorm:"column:meta; type:JSONB"`
+	UserAgent       string     `json:"user_agent" gorm:"column:user_agent"`
+	IPAddress       string     `json:"ip" gorm:"column:ip_address"`
+	Extra           string     `json:"extra" gorm:"column:extra"`
+	OperatingSystem string     `json:"os" gorm:"column:operating_system"`
+	Browser         string     `json:"browser" gorm:"column:browser"`
+	Status          string     `json:"status" gorm:"column:status"`
 }
 
 func (ShortyAccess) TableName() string {

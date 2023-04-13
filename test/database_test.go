@@ -1,8 +1,7 @@
-package database
+package test
 
 import (
 	"database/sql/driver"
-	"log"
 	"math/rand"
 	"regexp"
 	"testing"
@@ -10,14 +9,12 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 
-	"github.com/doutorfinancas/pun-sho/test"
+	"github.com/doutorfinancas/pun-sho/database"
 )
 
-func getTestModelSingle() *test.TestsModel {
-	return &test.TestsModel{
+func getTestModelSingle() *TestsModel {
+	return &TestsModel{
 		ID:         999,
 		TestInt:    1234,
 		TestString: "Test my string",
@@ -27,7 +24,7 @@ func getTestModelSingle() *test.TestsModel {
 	}
 }
 
-func getTestRows(models []test.TestsModel) *sqlmock.Rows {
+func getTestRows(models []TestsModel) *sqlmock.Rows {
 	var userFieldNames = []string{"id", "test_int", "test_string", "test_bool", "test_float", "test_time"}
 	rows := sqlmock.NewRows(userFieldNames)
 	for _, w := range models {
@@ -36,10 +33,10 @@ func getTestRows(models []test.TestsModel) *sqlmock.Rows {
 	return rows
 }
 
-func getTestModels(n int) []test.TestsModel {
-	var ret []test.TestsModel
+func getTestModels(n int) []TestsModel {
+	var ret []TestsModel
 	for i := 0; i < n; i++ {
-		u := test.TestsModel{
+		u := TestsModel{
 			ID:         999 + int64(i),
 			TestInt:    1234,
 			TestString: "Test my string",
@@ -53,38 +50,11 @@ func getTestModels(n int) []test.TestsModel {
 	return ret
 }
 
-func newDB() (sqlmock.Sqlmock, *gorm.DB) {
-	db, mock, err := sqlmock.New()
-	if err != nil {
-		log.Fatalf("can't create sqlmock: %s", err)
-	}
-
-	d := postgres.New(
-		postgres.Config{
-			Conn:       db,
-			DriverName: "postgresql",
-		},
-	)
-
-	gormDB, gerr := gorm.Open(d, &gorm.Config{})
-	if gerr != nil {
-		log.Fatalf("can't open gorm connection: %s", err)
-	}
-
-	return mock, gormDB.Set("gorm:update_column", true)
-}
-
-func checkMock(t *testing.T, mock sqlmock.Sqlmock) {
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expections: %s", err)
-	}
-}
-
 func TestNewDatabase(t *testing.T) {
-	m, db := newDB()
-	defer checkMock(t, m)
+	m, db := NewMockDB()
+	defer CheckMockDB(t, m)
 
-	dbTest := NewDatabase(db)
+	dbTest := database.NewDatabase(db)
 	conf, _ := dbTest.Orm.DB()
 
 	err := conf.Ping()
@@ -93,19 +63,31 @@ func TestNewDatabase(t *testing.T) {
 }
 
 func TestDatabase_FetchOne(t *testing.T) {
-	m, db := newDB()
-	defer checkMock(t, m)
+	m, db := NewMockDB()
+	defer CheckMockDB(t, m)
 
 	expectedModel := getTestModels(1)
 
-	rows := getTestRows(expectedModel)
+	rows := GenerateMockRows(
+		[]string{"id", "test_int", "test_string", "test_bool", "test_float", "test_time"},
+		[][]driver.Value{
+			{
+				expectedModel[0].ID,
+				expectedModel[0].TestInt,
+				expectedModel[0].TestString,
+				expectedModel[0].TestBool,
+				expectedModel[0].TestFloat,
+				expectedModel[0].TestTime,
+			},
+		},
+	)
 	req := `SELECT * FROM "tests" WHERE "tests"."id" = $1 AND "tests"."id" = $2 ORDER BY "tests"."id" LIMIT 1`
 
 	m.ExpectQuery(regexp.QuoteMeta(req)).WillReturnRows(rows)
 
-	dbTest := NewDatabase(db)
+	dbTest := database.NewDatabase(db)
 
-	model := test.TestsModel{ID: 999}
+	model := TestsModel{ID: 999}
 
 	resultTest := dbTest.FetchOne(&model)
 
@@ -114,8 +96,8 @@ func TestDatabase_FetchOne(t *testing.T) {
 }
 
 func TestDatabase_FetchAll(t *testing.T) {
-	m, db := newDB()
-	defer checkMock(t, m)
+	m, db := NewMockDB()
+	defer CheckMockDB(t, m)
 	c := rand.Intn(50) //nolint:gosec
 
 	expectedModel := getTestModels(c)
@@ -125,10 +107,10 @@ func TestDatabase_FetchAll(t *testing.T) {
 
 	m.ExpectQuery(regexp.QuoteMeta(req)).WillReturnRows(rows)
 
-	dbTest := NewDatabase(db)
+	dbTest := database.NewDatabase(db)
 
-	model := &test.TestsModel{TestString: "Test my string"}
-	var foundModels []test.TestsModel
+	model := &TestsModel{TestString: "Test my string"}
+	var foundModels []TestsModel
 
 	resultTest := dbTest.FetchAll(model, &foundModels)
 	assert.Equal(t, c, len(foundModels))
@@ -137,8 +119,8 @@ func TestDatabase_FetchAll(t *testing.T) {
 }
 
 func TestDatabase_CountAll(t *testing.T) {
-	m, db := newDB()
-	defer checkMock(t, m)
+	m, db := NewMockDB()
+	defer CheckMockDB(t, m)
 	var c int64
 	var count = []string{"count"}
 	c = rand.Int63n(50) //nolint:gosec
@@ -149,16 +131,16 @@ func TestDatabase_CountAll(t *testing.T) {
 
 	m.ExpectQuery(regexp.QuoteMeta(req)).WillReturnRows(countR)
 
-	dbTest := NewDatabase(db)
-	model := test.TestsModel{TestString: "Test my string"}
+	dbTest := database.NewDatabase(db)
+	model := TestsModel{TestString: "Test my string"}
 
 	resultTest := dbTest.CountAll(&model)
 	assert.Equal(t, c, resultTest)
 }
 
 func TestDatabase_Save(t *testing.T) {
-	m, db := newDB()
-	defer checkMock(t, m)
+	m, db := NewMockDB()
+	defer CheckMockDB(t, m)
 
 	expectedModel := getTestModels(1)
 
@@ -177,9 +159,9 @@ func TestDatabase_Save(t *testing.T) {
 		driver.Value(expectedModel[0].ID),
 	).WillReturnRows(mutatedRows)
 
-	dbTest := NewDatabase(db)
+	dbTest := database.NewDatabase(db)
 
-	model := test.TestsModel{ID: 999, TestString: "Test my string 1234"}
+	model := TestsModel{ID: 999, TestString: "Test my string 1234"}
 	resultTest := dbTest.Save(&model)
 
 	assert.NotEqual(t, expectedModel[0].TestString, model.TestString)
@@ -187,8 +169,8 @@ func TestDatabase_Save(t *testing.T) {
 }
 
 func TestDatabase_Create(t *testing.T) {
-	m, db := newDB()
-	defer checkMock(t, m)
+	m, db := NewMockDB()
+	defer CheckMockDB(t, m)
 
 	expectedModel := getTestModels(1)
 	expectedRows := getTestRows(expectedModel)
@@ -207,7 +189,7 @@ func TestDatabase_Create(t *testing.T) {
 		).WillReturnRows(expectedRows)
 	m.ExpectCommit()
 
-	dbTest := NewDatabase(db)
+	dbTest := database.NewDatabase(db)
 
 	resultTest := dbTest.Create(model)
 
@@ -216,17 +198,17 @@ func TestDatabase_Create(t *testing.T) {
 }
 
 func TestDatabase_Delete(t *testing.T) {
-	m, db := newDB()
-	defer checkMock(t, m)
+	m, db := NewMockDB()
+	defer CheckMockDB(t, m)
 
 	req := `DELETE FROM "tests" WHERE "tests"."test_string" = $1`
 	m.ExpectBegin()
 	m.ExpectExec(regexp.QuoteMeta(req)).WillReturnResult(sqlmock.NewResult(0, 1))
 	m.ExpectCommit()
 
-	dbTest := NewDatabase(db)
+	dbTest := database.NewDatabase(db)
 
-	workerTest := test.TestsModel{TestString: "Test my string"}
+	workerTest := TestsModel{TestString: "Test my string"}
 
 	resultTest := dbTest.Delete(&workerTest)
 

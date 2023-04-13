@@ -22,9 +22,3 @@ type Shorty struct {
 func (*Shorty) TableName() string {
 	return "shorties"
 }
-
-// func (s *Shorty) BeforeCreate(tx *gorm.DB) (err error) {
-// 	s.ID = uuid.New()
-//
-// 	return
-// }

@@ -153,3 +153,34 @@ func TestToStringNil(t *testing.T) {
 		)
 	}
 }
+
+func TestRandStringRunes(t *testing.T) {
+	tests := []struct {
+		name   string
+		length int
+	}{
+		{
+			"size five",
+			5,
+		},
+		{
+			"size thirteen",
+			13,
+		},
+		{
+			"size six",
+			6,
+		},
+		{
+			"size five",
+			5,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				assert.Equal(t, tt.length, len(RandStringRunes(tt.length)), "RandStringRunes(%v)", tt.length)
+			},
+		)
+	}
+}

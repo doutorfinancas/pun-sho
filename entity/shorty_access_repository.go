@@ -23,16 +23,16 @@ func NewShortyAccessRepository(db *database.Database, log *zap.Logger) *ShortyAc
 func (r *ShortyAccessRepository) ListByShortyUUID(id uuid.UUID, limit, offset int) ([]*ShortyAccess, error) {
 	rows := make([]*ShortyAccess, 0)
 
-	if err := r.Database.FetchPage(
-		&ShortyAccess{
-			ShortyID: id,
-		},
-		limit,
-		offset,
-		&rows,
-	); err != nil {
+	if err := r.Database.Orm.
+		Model(
+			&ShortyAccess{},
+		).
+		Select("shorty_accesses.*").
+		Limit(limit).
+		Offset(offset).
+		Where("shorty_accesses.shorty_id = ?", id).
+		Find(&rows).Error; err != nil {
 		return nil, err
 	}
-
 	return rows, nil
 }
