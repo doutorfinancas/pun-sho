@@ -9,6 +9,7 @@ type Config struct {
 	Token       string `env:"AUTH_TOKEN"`
 	HostName    string `env:"HOST_NAME"`
 	UnknownPage string `env:"UNKNOWN_PAGE"`
+	QRLogo      string `env:"QR_PNG_LOGO"`
 	DBUsername  string `env:"DB_USERNAME"`
 	DBPassword  string `env:"DB_PASSWORD"`
 	DBName      string `env:"DB_NAME"`
