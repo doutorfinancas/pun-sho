@@ -1,6 +1,9 @@
 package entity
 
 import (
+	"time"
+
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 
 	"github.com/doutorfinancas/pun-sho/database"
@@ -32,4 +35,12 @@ func (r *ShortyRepository) List(limit, offset int) ([]*Shorty, error) {
 	}
 
 	return rows, nil
+}
+
+func (r *ShortyRepository) Delete(id uuid.UUID) error {
+	m := Shorty{ID: id}
+	return r.Database.Orm.Model(m).
+		Where("id = ?", id).
+		Update("deleted_at", time.Now()).
+		Error
 }

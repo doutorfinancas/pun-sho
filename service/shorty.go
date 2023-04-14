@@ -220,3 +220,7 @@ func (s *ShortyService) FindShortyByPublicID(publicID string) (*entity.Shorty, e
 
 	return m, nil
 }
+
+func (s *ShortyService) DeleteShortyByUUID(id uuid.UUID) error {
+	return s.shortyRepository.Delete(id)
+}
