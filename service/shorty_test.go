@@ -105,6 +105,26 @@ func TestCountRedirects(t *testing.T) {
 		want int
 	}{
 		{
+			name: "Test shorty accesses 'redirected' status count when equal to 0",
+			args: args{
+				accesses: []entity.ShortyAccess{
+					{
+						Status: StatusDeleted,
+					},
+					{
+						Status: StatusExpired,
+					},
+					{
+						Status: StatusBlocked,
+					},
+					{
+						Status: StatusLimitReached,
+					},
+				},
+			},
+			want: 0,
+		},
+		{
 			name: "Test shorty accesses 'redirected' status count",
 			args: args{
 				accesses: []entity.ShortyAccess{

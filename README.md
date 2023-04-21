@@ -19,54 +19,25 @@ Spelled pan‧cho - ˈpãnʲ.t͡ʃo
 
 props to [XKCD](https://xkcd.com/927/)
 
-We decided that we need something that doesn't exist on every other project (mix all of them 
-, and you would have it).
+We decided that we need something that doesn't exist on every other project (mix all of them, and you would have it).
 
 So, we decided to make yet another URL shortener.
 
 ## Usage
-you can clone this repo or use one of the precompiled binaries available in the release section
+You can clone this repo or use one of the precompiled binaries available in the release section
 
-you can also use docker, pre-made images are available for you at `docker pull ghcr.io/doutorfinancas/pun-sho:latest`
-or you can
+You can also use docker, pre-made images are available for you at `docker pull ghcr.io/doutorfinancas/pun-sho:latest`
+or you can:
 ```bash
 # this API_PORT is defined in .env file or put it in env itself
 export API_PORT=8080
 docker run --env-file=.env -p 8080:${API_PORT} -t ghcr.io/doutorfinancas/pun-sho:latest pun-sho 
 ```
 
-you should also copy the `.env.example` to `.env` and fill the values for the database.
+You should also copy the `.env.example` to `.env` and fill the values for the database.
 you can use either `cockroach` or `postgres` as value for the `DB_ADAPTOR`
 
-if you want to use `cockroach`, you can create a free account [here](https://cockroachlabs.cloud/)
-
-## DB migrations
-This project uses database migrations.
-For any changes on the DB structure to be dealt with or replicated or rolled-back we use a [migration tool](https://github.com/golang-migrate/migrate)
-
-### Install golang-migrate
-```shell
-# cockroach
-go install -tags 'cockroachdb' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-# postgres
-go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-```
-
-### Create new migration files
-```shell
-make migration/create
-```
-
-### Migrate
-To go versions up:
-```shell
-make migration/up
-```
-
-To go versions down:
-```shell
-make migration/clean
-```
+If you want to use `cockroach`, you can create a free account [here](https://cockroachlabs.cloud/)
 
 ### Create a short link
 ```bash
@@ -96,7 +67,7 @@ curl -XPOST https://yourdomain.something/api/v1/short \
   -d $BODY
 ```
 
-this would render an answer like:
+This would render an answer like:
 ```json
 {
   "id":"4b677dfe-e17a-46e7-9cd2-25a45e8cb19c",
@@ -117,7 +88,7 @@ this would render an answer like:
 curl -H 'token: ThisIsA5uper$ecureAPIToken' http://localhost:8080/api/v1/short/c62cbe57-7e45-4e87-a7c1-11cfb006870b 
 ```
 
-this would render an answer like ("visits" and "redirects" will only be equal to 1 if you access the link once):
+This would render an answer like ("visits" and "redirects" will only be equal to 1 if you access the link once):
 ```json
 {
   "id":"c62cbe57-7e45-4e87-a7c1-11cfb006870b",
@@ -160,11 +131,47 @@ this would render an answer like ("visits" and "redirects" will only be equal to
 curl -H 'token: ThisIsA5uper$ecureAPIToken' http://localhost:8080/api/v1/short/?limit=20&offset=0
 ```
 
-will return a list of short links, using pagination
+Which will return a list of short links, using pagination.
 
 ### Deleting a link to make it inaccessible
 ```bash
 curl -H 'token: ThisIsA5uper$ecureAPIToken' -XDELETE http://localhost:8080/api/v1/short/c62cbe57-7e45-4e87-a7c1-11cfb006870b
+```
+
+## Tests
+You can execute all the tests of the application by using `make test`.
+
+If you want to only execute one of the types we have, then you can run:
+- `make test/go` for Go tests 
+- `make test/http-requests` for http-requests tests
+(uses Docker but you can, locally, execute them through Intellij IDEA or through [http-client cli](https://www.jetbrains.com/help/idea/http-client-cli.html)).
+
+## DB migrations
+This project uses database migrations.
+For any changes on the DB structure to be dealt with or replicated or rolled-back we use a [migration tool](https://github.com/golang-migrate/migrate).
+
+### Install golang-migrate
+```shell
+# cockroach
+go install -tags 'cockroachdb' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+# postgres
+go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+```
+
+### Create new migration files
+```shell
+make migration/create
+```
+
+### Migrate
+To go versions up:
+```shell
+make migration/up
+```
+
+To go versions down:
+```shell
+make migration/clean
 ```
 
 ## Releases

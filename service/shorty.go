@@ -25,7 +25,7 @@ const (
 	StatusRedirected      = "redirected"
 	StatusBlocked         = "blocked"
 	StatusExpired         = "expired"
-	StatusLimitReached    = "limit reached"
+	StatusLimitReached    = "limit_reached"
 	StatusDeleted         = "deleted"
 	VersionStringify      = "%s %s"
 	TransparentBackground = "transparent"
