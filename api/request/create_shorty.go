@@ -5,9 +5,10 @@ import (
 )
 
 type CreateShorty struct {
-	Link   string     `json:"link"`
-	TTL    *time.Time `json:"TTL"`
-	QRCode *QRCode    `json:"qr_code"`
+	Link             string     `json:"link"`
+	TTL              *time.Time `json:"TTL"`
+	RedirectionLimit *int       `json:"redirection_limit"`
+	QRCode           *QRCode    `json:"qr_code"`
 }
 
 type QRCode struct {

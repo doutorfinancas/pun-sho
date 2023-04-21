@@ -38,7 +38,7 @@ docker run --env-file=.env -p 8080:${API_PORT} -t ghcr.io/doutorfinancas/pun-sho
 you should also copy the `.env.example` to `.env` and fill the values for the database.
 you can use either `cockroach` or `postgres` as value for the `DB_ADAPTOR`
 
-if you use `cockroach`, you can create a free account [here](https://cockroachlabs.cloud/)
+if you want to use `cockroach`, you can create a free account [here](https://cockroachlabs.cloud/)
 
 ## DB migrations
 This project uses database migrations.
@@ -74,6 +74,7 @@ read -r -d '' BODY <<EOF
 {                
   "link": "https://www.google.pt/",
   "TTL": "2023-03-25T23:59:59Z",
+  "redirection_limit": 5,
   "qr_code": {
     "create": true,
     "width" : 50,
@@ -90,9 +91,9 @@ EOF
 # it will overlay the logo on qrcode center
 
 curl -XPOST https://yourdomain.something/api/v1/short \
-  -H 'token: Whatever_Token_you_put_in_your_env' \
+  -H 'token: ThisIsA5uper$ecureAPIToken' \
   -H 'Content-Type: application/json' \
-  -d $BODY 
+  -d $BODY
 ```
 
 this would render an answer like:
@@ -101,6 +102,7 @@ this would render an answer like:
   "id":"4b677dfe-e17a-46e7-9cd2-25a45e8cb19c",
   "link":"https://www.google.pt/",
   "TTL":"2023-03-25T23:59:59Z",
+  "redirection_limit": 5,
   "created_at":"2023-03-20T10:50:38.399449Z",
   "deleted_at":null,
   "accesses":null,
@@ -112,15 +114,16 @@ this would render an answer like:
 
 ### Get statistics from a visited link
 ```bash
-curl -H 'token: ThisIsA5uper$ecureAPIToken' https://yourdomain.something/api/v1/short/c62cbe57-7e45-4e87-a7c1-11cfb006870b 
+curl -H 'token: ThisIsA5uper$ecureAPIToken' http://localhost:8080/api/v1/short/c62cbe57-7e45-4e87-a7c1-11cfb006870b 
 ```
 
-this would render an answer like:
+this would render an answer like ("visits" and "redirects" will only be equal to 1 if you access the link once):
 ```json
 {
   "id":"c62cbe57-7e45-4e87-a7c1-11cfb006870b",
   "link":"https://www.google.pt/",
   "TTL":"2023-03-25T23:59:59Z",
+  "redirection_limit": 5,
   "created_at":"2023-03-19T18:56:06.8404Z",
   "deleted_at":null,
   "accesses": [
@@ -154,14 +157,14 @@ this would render an answer like:
 
 ### Get a list of links
 ```bash
-curl -H 'token: ThisIsA5uper$ecureAPIToken' https://yourdomain.something/api/v1/short/?limit=20&offset=0
+curl -H 'token: ThisIsA5uper$ecureAPIToken' http://localhost:8080/api/v1/short/?limit=20&offset=0
 ```
 
 will return a list of short links, using pagination
 
 ### Deleting a link to make it inaccessible
 ```bash
-curl -H 'token: ThisIsA5uper$ecureAPIToken' -XDELETE https://yourdomain.something/api/v1/short/c62cbe57-7e45-4e87-a7c1-11cfb006870b
+curl -H 'token: ThisIsA5uper$ecureAPIToken' -XDELETE http://localhost:8080/api/v1/short/c62cbe57-7e45-4e87-a7c1-11cfb006870b
 ```
 
 ## Releases

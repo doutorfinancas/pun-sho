@@ -34,7 +34,7 @@ func TestShortyService_Create(t *testing.T) {
 			},
 		},
 	)
-	req := `INSERT INTO "shorties" ("public_id","link","ttl","created_at","deleted_at","qr_code") VALUES ($1,$2,$3,$4,$5,$6) RETURNING "id"`
+	req := `INSERT INTO "shorties" ("public_id","link","ttl","redirection_limit","created_at","deleted_at","qr_code") VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING "id"`
 	m.ExpectBegin()
 	m.ExpectQuery(regexp.QuoteMeta(req)).WithArgs().WillReturnRows(rows)
 	m.ExpectCommit()
@@ -56,21 +56,23 @@ func TestShortyService_Create(t *testing.T) {
 			},
 			args: args{
 				req: &request.CreateShorty{
-					Link: "www.cenas.pt",
-					TTL:  nil,
+					Link:             "www.cenas.pt",
+					TTL:              nil,
+					RedirectionLimit: nil,
 				},
 			},
 			want: &entity.Shorty{
-				ID:             uuid.UUID{},
-				PublicID:       "",
-				Link:           "",
-				TTL:            nil,
-				CreatedAt:      nil,
-				DeletedAt:      nil,
-				ShortyAccesses: nil,
-				ShortLink:      "",
-				Visits:         0,
-				RedirectCount:  0,
+				ID:               uuid.UUID{},
+				PublicID:         "",
+				Link:             "",
+				TTL:              nil,
+				RedirectionLimit: nil,
+				CreatedAt:        nil,
+				DeletedAt:        nil,
+				ShortyAccesses:   nil,
+				ShortLink:        "",
+				Visits:           0,
+				RedirectCount:    0,
 			},
 			wantErr: false,
 		},
@@ -90,5 +92,48 @@ func TestShortyService_Create(t *testing.T) {
 				assert.Equal(t, "batatas.pt/s/"+got.PublicID, got.ShortLink)
 			},
 		)
+	}
+}
+
+func TestCountRedirects(t *testing.T) {
+	type args struct {
+		accesses []entity.ShortyAccess
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		{
+			name: "Test shorty accesses 'redirected' status count",
+			args: args{
+				accesses: []entity.ShortyAccess{
+					{
+						Status: StatusDeleted,
+					},
+					{
+						Status: StatusExpired,
+					},
+					{
+						Status: StatusRedirected,
+					},
+					{
+						Status: StatusBlocked,
+					},
+					{
+						Status: StatusRedirected,
+					},
+					{
+						Status: StatusLimitReached,
+					},
+				},
+			},
+			want: 2,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, CountRedirects(tt.args.accesses), "CountRedirects(%v)", tt.args.accesses)
+		})
 	}
 }

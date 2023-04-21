@@ -25,6 +25,7 @@ const (
 	StatusRedirected      = "redirected"
 	StatusBlocked         = "blocked"
 	StatusExpired         = "expired"
+	StatusLimitReached    = "limit reached"
 	StatusDeleted         = "deleted"
 	VersionStringify      = "%s %s"
 	TransparentBackground = "transparent"
@@ -56,9 +57,10 @@ func NewShortyService(
 
 func (s *ShortyService) Create(req *request.CreateShorty) (*entity.Shorty, error) {
 	m := &entity.Shorty{
-		PublicID: str.RandStringRunes(PublicIDSize),
-		Link:     req.Link,
-		TTL:      req.TTL,
+		PublicID:         str.RandStringRunes(PublicIDSize),
+		Link:             req.Link,
+		TTL:              req.TTL,
+		RedirectionLimit: req.RedirectionLimit,
 	}
 
 	m.ShortLink = fmt.Sprintf("%s/s/%s", s.hostName, m.PublicID)
@@ -141,6 +143,14 @@ func (s *ShortyService) CreateVisit(publicID string, req *request.Redirect) (*en
 		status = StatusExpired
 	}
 
+	accessList := s.FindAllAccessesByShortyID(sh.ID)
+	redirectCount := CountRedirects(accessList)
+	if sh.RedirectionLimit != nil && *sh.RedirectionLimit != 0 {
+		if redirectCount >= *sh.RedirectionLimit {
+			status = StatusLimitReached
+		}
+	}
+
 	ua := useragent.Parse(req.UserAgent)
 	if ua.Bot {
 		status = StatusBlocked
@@ -187,24 +197,12 @@ func (s *ShortyService) FindShortyByID(id uuid.UUID) (*entity.Shorty, error) {
 		return nil, err
 	}
 
-	var sh []entity.ShortyAccess
-
-	_ = s.shortyAccessRepository.Database.FetchAll(
-		&entity.ShortyAccess{ShortyID: id},
-		&sh,
-	)
+	sh := s.FindAllAccessesByShortyID(id)
 
 	m.ShortyAccesses = sh
 
 	m.Visits = len(sh)
-	m.RedirectCount = func(a []entity.ShortyAccess) (tmp int) {
-		for _, v := range a {
-			if v.Status == StatusRedirected {
-				tmp++
-			}
-		}
-		return
-	}(sh)
+	m.RedirectCount = CountRedirects(sh)
 
 	return m, nil
 }
@@ -223,4 +221,25 @@ func (s *ShortyService) FindShortyByPublicID(publicID string) (*entity.Shorty, e
 
 func (s *ShortyService) DeleteShortyByUUID(id uuid.UUID) error {
 	return s.shortyRepository.Delete(id)
+}
+
+func (s *ShortyService) FindAllAccessesByShortyID(id uuid.UUID) []entity.ShortyAccess {
+	var sh []entity.ShortyAccess
+
+	_ = s.shortyAccessRepository.Database.FetchAll(
+		&entity.ShortyAccess{ShortyID: id},
+		&sh,
+	)
+
+	return sh
+}
+
+func CountRedirects(accesses []entity.ShortyAccess) int {
+	var redirects int
+	for _, access := range accesses {
+		if access.Status == StatusRedirected {
+			redirects++
+		}
+	}
+	return redirects
 }

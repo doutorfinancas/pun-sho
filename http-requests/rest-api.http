@@ -1,0 +1,74 @@
+### Create a short link
+
+# curl -XPOST {{host}}/api/v1/short
+#  -H 'token: {{token}}'
+#  -H 'Content-Type: application/json'
+#  -d $BODY
+POST {{host}}/api/v1/short
+token: {{token}}
+Content-Type: application/json
+
+{
+  "link": "https://www.brave.com/",
+  "TTL": "2023-05-25T23:59:59Z",
+  "redirection_limit": 5,
+  "qr_code": {
+    "create": true,
+    "width" : 50,
+    "height": 50,
+    "foreground_color": "#000000",
+    "background_color": "#ffffff",
+    "shape": "circle"
+  }
+}
+
+> {%
+  client.test("Status", function() {
+    client.assert(response.status === 201, "Response status is not 201");
+  });
+
+  client.test("Content-Type", function() {
+    const contentType = response.contentType.mimeType
+    client.assert(contentType === "application/json", "Response Content-Type is not 'application/json'");
+  });
+
+  client.global.set('shorty_id', response.body.id);
+%}
+
+### Get statistics from a visited link
+
+# curl -H 'token: {{token}}' {{host}}/api/v1/short/{{shorty_id}}
+# * {{shorty_id}} being what was created in the previous test
+GET {{host}}/api/v1/short/{{shorty_id}}
+token: {{token}}
+
+> {%
+  client.test("Status", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+  });
+
+  client.test("Content-Type", function() {
+    const contentType = response.contentType.mimeType
+    client.assert(contentType === "application/json", "Response Content-Type is not 'application/json'");
+  });
+%}
+
+### Get a list of links
+
+# curl -H 'token: {{token}}' {{host}}/api/v1/short/?limit=20&offset=0
+GET {{host}}/api/v1/short/?limit=20&offset=0
+token: {{token}}
+
+> {%
+  client.test("Status", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+  });
+
+  client.test("Content-Type", function() {
+    const contentType = response.contentType.mimeType
+    client.assert(contentType === "application/json", "Response Content-Type is not 'application/json'");
+  });
+%}
+
+###
+
