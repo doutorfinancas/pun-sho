@@ -14,6 +14,7 @@ RUN CGO_ENABLED=0 go build -o /pun-sho main.go
 FROM alpine:3.17.2
 
 COPY --from=build /pun-sho /pun-sho
+COPY ./img/logo_df.png /img/logo_df.png
 
 RUN chmod +x /pun-sho
 
