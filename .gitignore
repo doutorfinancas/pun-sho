@@ -1,5 +1,6 @@
 /.idea
 /dist
-.env
 tmp
 pun-sho
+.env
+http-requests/http-client.private.env.json

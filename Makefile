@@ -21,15 +21,22 @@ hook/setup:
 	pre-commit install
 
 .PHONY: test
-test:
-	TEST_MODE=full go test -v ./...
-	go vet -printf=false ./...
+test: test/go test/http-requests
 
 .PHONY: test/cover
 test/cover:
 	TEST_MODE=full go test -coverprofile=c.out -v ./...
 	go tool cover -html=c.out -o coverage.html
 	go vet -printf=false ./...
+
+.PHONY: test/go
+test/go:
+	TEST_MODE=full go test -v ./...
+	go vet -printf=false ./...
+
+.PHONY: test/http-requests
+test/http-requests:
+	docker run --rm -i -t -v ./http-requests:/workdir jetbrains/intellij-http-client --env development --env-file http-client.env.json --private-env-file http-client.private.env.json -D rest-api.http
 
 .PHONY: migration/create
 migration/create:
