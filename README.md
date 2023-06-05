@@ -61,7 +61,7 @@ EOF
 # by setting env property QR_PNG_LOGO to a png filepath, 
 # it will overlay the logo on qrcode center
 
-curl -XPOST https://yourdomain.something/api/v1/short \
+curl -XPOST http://localhost:8080/api/v1/short \
   -H 'token: ThisIsA5uper$ecureAPIToken' \
   -H 'Content-Type: application/json' \
   -d $BODY
@@ -77,10 +77,34 @@ This would render an answer like:
   "created_at":"2023-03-20T10:50:38.399449Z",
   "deleted_at":null,
   "accesses":null,
+  "qr_code": "data:image/png;base64,ASfojih134kjhas9f8798134lk2fasf...",
   "short_link":"https://env.configured.domain/s/SEdeyZByeP",
   "visits":0,
   "redirects":0
 }
+```
+
+If you want to preview the QR code only, you can use the preview endpoint with the same body as above
+No TTL exists in that endpoint though (as its only preview mode), and the link is exactly the one you sent
+```bash
+read -r -d '' BODY <<EOF
+{                
+  "link": "https://www.google.pt/",
+  "qr_code": {
+    "create": true,
+    "width" : 50,
+    "height": 50,
+    "foreground_color": "#000000",
+    "background_color": "#ffffff",
+    "shape": "circle"
+  }
+}
+EOF
+
+curl -XPOST http://localhost:8080/api/v1/preview \
+  -H 'token: ThisIsA5uper$ecureAPIToken' \
+  -H 'Content-Type: application/json' \
+  -d $BODY 
 ```
 
 ### Get statistics from a visited link
@@ -176,6 +200,10 @@ make migration/clean
 
 ## Releases
 We are currently working actively in the project and as such there still isn't a closed API.
+
+However, we are already using it in production, in our own projects.
+
+We consider this to be an MVP and as such use it at your own risk.
 
 we will be releasing 0.X until we bind a contract to the API
 

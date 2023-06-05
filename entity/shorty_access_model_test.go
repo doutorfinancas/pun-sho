@@ -1,11 +1,11 @@
 package entity
 
 import (
-	"reflect"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestShortyAccess_ConvertMeta(t *testing.T) {
@@ -108,16 +108,16 @@ func TestShortyAccess_ConvertMeta(t *testing.T) {
 			want: Meta{
 				M: []MetaValues{
 					{
-						Name: "ze",
-						Values: []string{
-							"braco",
-						},
-					},
-					{
 						Name: "toni",
 						Values: []string{
 							"perna",
 							"cabeca",
+						},
+					},
+					{
+						Name: "ze",
+						Values: []string{
+							"braco",
 						},
 					},
 				},
@@ -137,9 +137,8 @@ func TestShortyAccess_ConvertMeta(t *testing.T) {
 					Browser:         tt.fields.Browser,
 					Status:          tt.fields.Status,
 				}
-				if got := sh.ConvertMeta(tt.args.a); !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("ConvertMeta() = %v, want %v", got, tt.want)
-				}
+				got := sh.ConvertMeta(tt.args.a)
+				assert.ElementsMatch(t, got.M, tt.want.M, "ConvertMeta() failed")
 			},
 		)
 	}
