@@ -15,16 +15,23 @@ import (
 
 type API struct {
 	BaseGinServer
-	log     *zap.Logger
-	config  *Config
-	service *service.ShortyService
+	log       *zap.Logger
+	config    *Config
+	shortySvc *service.ShortyService
+	qrSvc     *service.QRCodeService
 }
 
-func NewAPI(log *zap.Logger, config *Config, shortyService *service.ShortyService) *API {
+func NewAPI(
+	log *zap.Logger,
+	config *Config,
+	shortyService *service.ShortyService,
+	qrSvc *service.QRCodeService,
+) *API {
 	return &API{
-		log:     log,
-		config:  config,
-		service: shortyService,
+		log:       log,
+		config:    config,
+		shortySvc: shortyService,
+		qrSvc:     qrSvc,
 	}
 }
 
@@ -39,13 +46,14 @@ func (a *API) Run() {
 		gzip.Gzip(gzip.DefaultCompression),
 	)
 
-	a.PushHandlerWithGroup(NewURLHandler(a.config.UnknownPage, a.service), g.Group("/"))
+	a.PushHandlerWithGroup(NewURLHandler(a.config.UnknownPage, a.shortySvc), g.Group("/"))
 
 	authMiddleware := NewAuthenticationMiddleware(a.config.Token)
 
 	apiGroup := g.Group("/api/v1")
 	apiGroup.Use(authMiddleware.Authenticated)
-	a.PushHandlerWithGroup(NewShortenerHandler(a.service), apiGroup)
+	a.PushHandlerWithGroup(NewShortenerHandler(a.shortySvc), apiGroup)
+	a.PushHandlerWithGroup(NewPreviewHandler(a.qrSvc), apiGroup)
 
 	if err := g.Run(fmt.Sprintf(":%d", a.config.Port)); err != nil {
 		a.log.Fatal(err.Error())

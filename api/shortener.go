@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	"github.com/doutorfinancas/pun-sho/api/response"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
@@ -12,11 +13,13 @@ import (
 )
 
 type shortenerHandler struct {
-	service *service.ShortyService
+	shortySvc *service.ShortyService
 }
 
-func NewShortenerHandler(svc *service.ShortyService) HTTPHandler {
-	return &shortenerHandler{service: svc}
+func NewShortenerHandler(shortySvc *service.ShortyService) HTTPHandler {
+	return &shortenerHandler{
+		shortySvc: shortySvc,
+	}
 }
 
 func (h *shortenerHandler) Routes(rg *gin.RouterGroup) {
@@ -35,11 +38,11 @@ func (h *shortenerHandler) GetLinkInformation(c *gin.Context) {
 	if id == "" {
 		c.JSON(
 			http.StatusBadRequest,
-			NewErrorResponse("no id provided"),
+			response.NewFailure("no id provided"),
 		)
 	}
 	parsed := uuid.MustParse(id)
-	shorty, err := h.service.FindShortyByID(parsed)
+	shorty, err := h.shortySvc.FindShortyByID(parsed)
 	if err != nil {
 		c.JSON(http.StatusNotFound, "shorty not found")
 		return
@@ -56,16 +59,16 @@ func (h *shortenerHandler) ListLinks(c *gin.Context) {
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
-			NewErrorResponse(message),
+			response.NewFailure(message),
 		)
 		return
 	}
 
-	links, err := h.service.List(limit, offset)
+	links, err := h.shortySvc.List(limit, offset)
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
-			NewErrorResponse("kaput, no links for you"),
+			response.NewFailure("kaput, no links for you"),
 		)
 		return
 	}
@@ -80,15 +83,15 @@ func (h *shortenerHandler) CreateLink(c *gin.Context) {
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
-			NewErrorResponse("invalid payload"),
+			response.NewFailure("invalid payload"),
 		)
 		return
 	}
-	s, err := h.service.Create(m)
+	s, err := h.shortySvc.Create(m)
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
-			NewErrorResponse("kaput, no save"),
+			response.NewFailure("kaput, no save"),
 		)
 		return
 	}
@@ -101,15 +104,15 @@ func (h *shortenerHandler) RemoveLink(c *gin.Context) {
 	if id == "" {
 		c.JSON(
 			http.StatusBadRequest,
-			NewErrorResponse("no id provided"),
+			response.NewFailure("no id provided"),
 		)
 	}
 	parsed := uuid.MustParse(id)
-	err := h.service.DeleteShortyByUUID(parsed)
+	err := h.shortySvc.DeleteShortyByUUID(parsed)
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
-			NewErrorResponse("kaput, no delete"),
+			response.NewFailure("kaput, no delete"),
 		)
 	}
 	c.JSON(http.StatusOK, nil)

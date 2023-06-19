@@ -33,9 +33,10 @@ func main() {
 
 	shortyRepo := entity.NewShortyRepository(db, log)
 	shortyAccessRepo := entity.NewShortyAccessRepository(db, log)
-	shortySvc := service.NewShortyService(cfg.HostName, cfg.QRLogo, log, shortyRepo, shortyAccessRepo)
+	qrSvc := service.NewQRCodeService(cfg.QRLogo)
+	shortySvc := service.NewShortyService(cfg.HostName, cfg.QRLogo, log, shortyRepo, shortyAccessRepo, qrSvc)
 
-	a := api.NewAPI(log, cfg, shortySvc)
+	a := api.NewAPI(log, cfg, shortySvc, qrSvc)
 
 	a.Run()
 }
