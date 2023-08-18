@@ -18,3 +18,7 @@ func (r *Repository) Create(m model.Model) error {
 func (r *Repository) Find(m model.Model) error {
 	return r.Database.FetchOne(m)
 }
+
+func (r *Repository) Save(m model.Model) error {
+	return r.Database.Save(m)
+}

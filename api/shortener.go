@@ -26,6 +26,7 @@ func (h *shortenerHandler) Routes(rg *gin.RouterGroup) {
 	rg.GET("/:id", h.GetLinkInformation)
 	rg.GET("", h.ListLinks)
 	rg.POST("", h.CreateLink)
+	rg.PATCH("/:id", h.EditLink)
 	rg.DELETE("/:id", h.RemoveLink)
 }
 
@@ -79,7 +80,6 @@ func (h *shortenerHandler) ListLinks(c *gin.Context) {
 func (h *shortenerHandler) CreateLink(c *gin.Context) {
 	m := &request.CreateShorty{}
 	err := c.BindJSON(m)
-
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
@@ -87,6 +87,7 @@ func (h *shortenerHandler) CreateLink(c *gin.Context) {
 		)
 		return
 	}
+
 	s, err := h.shortySvc.Create(m)
 	if err != nil {
 		c.JSON(
@@ -97,6 +98,36 @@ func (h *shortenerHandler) CreateLink(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, s)
+}
+
+func (h *shortenerHandler) EditLink(c *gin.Context) {
+	id := c.Param("id")
+	m := &request.UpdateShorty{}
+	err := c.BindJSON(m)
+	if err != nil || id == "" {
+		c.JSON(
+			http.StatusBadRequest,
+			response.NewFailure("invalid payload"),
+		)
+		return
+	}
+
+	shorty, err := h.shortySvc.FindShortyByID(uuid.MustParse(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, "shorty not found")
+		return
+	}
+
+	updatedShorty, err := h.shortySvc.Update(m, shorty)
+	if err != nil {
+		c.JSON(
+			http.StatusBadRequest,
+			response.NewFailure("kaput, no save"),
+		)
+		return
+	}
+
+	c.JSON(http.StatusOK, updatedShorty)
 }
 
 func (h *shortenerHandler) RemoveLink(c *gin.Context) {

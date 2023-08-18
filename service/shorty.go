@@ -78,6 +78,31 @@ func (s *ShortyService) Create(req *request.CreateShorty) (*entity.Shorty, error
 	return m, nil
 }
 
+func (s *ShortyService) Update(req *request.UpdateShorty, m *entity.Shorty) (*entity.Shorty, error) {
+	if req.Link != "" {
+		m.Link = req.Link
+	}
+
+	if req.Cancel {
+		now := time.Now()
+		m.DeletedAt = &now
+	}
+
+	if req.TTL != nil {
+		m.TTL = req.TTL
+	}
+
+	if req.RedirectionLimit != nil {
+		m.RedirectionLimit = req.RedirectionLimit
+	}
+
+	if err := s.shortyRepository.Save(m); err != nil {
+		return nil, err
+	}
+
+	return m, nil
+}
+
 func (s *ShortyService) CreateVisit(publicID string, req *request.Redirect) (*entity.Shorty, error) {
 	sh, err := s.FindShortyByPublicID(publicID)
 	if err != nil {
