@@ -79,7 +79,7 @@ func (d *Database) Save(mod model.Model) error {
 	}
 
 	f := val.FieldByName("ID")
-	if reflect.Invalid != f.Kind() && (f.Int() == 0 && f.String() == "") {
+	if reflect.Invalid != f.Kind() && f.String() == "" {
 		return errors.New("you must pass a valid non empty ID in order to save it")
 	}
 
