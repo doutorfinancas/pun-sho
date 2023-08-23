@@ -1,0 +1,321 @@
+basePath: /api/v1
+definitions:
+  entity.Meta:
+    properties:
+      meta_collection:
+        items:
+          $ref: '#/definitions/entity.MetaValues'
+        type: array
+    type: object
+  entity.MetaValues:
+    properties:
+      name:
+        type: string
+      values:
+        items:
+          type: string
+        type: array
+    type: object
+  entity.Shorty:
+    properties:
+      TTL:
+        type: string
+      accesses:
+        items:
+          $ref: '#/definitions/entity.ShortyAccess'
+        type: array
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: string
+      link:
+        type: string
+      qr_code:
+        type: string
+      redirection_limit:
+        type: integer
+      redirects:
+        type: integer
+      short_link:
+        type: string
+      visits:
+        type: integer
+    type: object
+  entity.ShortyAccess:
+    properties:
+      browser:
+        type: string
+      created_at:
+        type: string
+      extra:
+        type: string
+      id:
+        type: string
+      ip:
+        type: string
+      meta:
+        $ref: '#/definitions/entity.Meta'
+      os:
+        type: string
+      status:
+        type: string
+      user_agent:
+        type: string
+    type: object
+  request.CreateShorty:
+    properties:
+      TTL:
+        type: string
+      link:
+        type: string
+      qr_code:
+        $ref: '#/definitions/request.QRCode'
+      redirection_limit:
+        type: integer
+    type: object
+  request.GeneratePreview:
+    properties:
+      link:
+        type: string
+      qr_code:
+        $ref: '#/definitions/request.QRCode'
+    type: object
+  request.QRCode:
+    properties:
+      background_color:
+        type: string
+      border_width:
+        type: integer
+      create:
+        type: boolean
+      foreground_color:
+        type: string
+      logo:
+        type: string
+      shape:
+        type: string
+      width:
+        type: integer
+    type: object
+  request.UpdateShorty:
+    properties:
+      TTL:
+        type: string
+      cancel:
+        type: boolean
+      link:
+        type: string
+      redirection_limit:
+        type: integer
+    type: object
+  response.FailureResponse:
+    properties:
+      message:
+        items:
+          type: string
+        type: array
+      status:
+        type: string
+    type: object
+  response.GeneratePreviewResponse:
+    properties:
+      message:
+        items:
+          type: string
+        type: array
+      qr_code:
+        type: string
+      status:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: Create your shortlinks with QRCodes and more!
+  title: Pun Sho API
+  version: "0.2"
+paths:
+  /preview:
+    post:
+      description: Creates a QR Code preview for a given url
+      parameters:
+      - description: Authorization token
+        in: header
+        name: token
+        type: string
+      - description: Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GeneratePreview'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: response
+          schema:
+            $ref: '#/definitions/response.GeneratePreviewResponse'
+        "400":
+          description: error
+          schema:
+            $ref: '#/definitions/response.FailureResponse'
+      summary: Creates a QR Code preview for a given url
+      tags:
+      - Preview
+  /short:
+    get:
+      description: Lists all the shortlinks available
+      parameters:
+      - description: Authorization token
+        in: header
+        name: token
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response
+          schema:
+            items:
+              $ref: '#/definitions/entity.Shorty'
+            type: array
+        "400":
+          description: error
+          schema:
+            $ref: '#/definitions/response.FailureResponse'
+      summary: Lists your shorlinks
+      tags:
+      - Short
+    post:
+      description: Creates a shortlink for a given url, optionally setting a ttl and
+        a redirection limit
+      parameters:
+      - description: Authorization token
+        in: header
+        name: token
+        type: string
+      - description: Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateShorty'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: response
+          schema:
+            $ref: '#/definitions/entity.Shorty'
+        "400":
+          description: error
+          schema:
+            $ref: '#/definitions/response.FailureResponse'
+      summary: Creates a shortlink for a given url
+      tags:
+      - Short
+  /short/{id}:
+    delete:
+      description: Deletes a shortlink
+      parameters:
+      - description: Authorization token
+        in: header
+        name: token
+        type: string
+      - description: ShortLink ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateShorty'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: error
+          schema:
+            $ref: '#/definitions/response.FailureResponse'
+        "404":
+          description: not found
+          schema:
+            $ref: '#/definitions/response.FailureResponse'
+      summary: Deletes a shortlink
+      tags:
+      - Short
+    get:
+      description: retrieves full information for the give shortlink
+      parameters:
+      - description: Authorization token
+        in: header
+        name: token
+        type: string
+      - description: ShortLink ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: response
+          schema:
+            $ref: '#/definitions/entity.Shorty'
+        "400":
+          description: error
+          schema:
+            $ref: '#/definitions/response.FailureResponse'
+        "404":
+          description: not found
+          schema:
+            $ref: '#/definitions/response.FailureResponse'
+      summary: get your shortlink information
+      tags:
+      - Short
+    patch:
+      description: Edits a shortlink, allowing to set TTL, cancel the link or change
+        the redirection limit or associated link
+      parameters:
+      - description: Authorization token
+        in: header
+        name: token
+        type: string
+      - description: ShortLink ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateShorty'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response
+          schema:
+            $ref: '#/definitions/entity.Shorty'
+        "400":
+          description: error
+          schema:
+            $ref: '#/definitions/response.FailureResponse'
+        "404":
+          description: not found
+          schema:
+            $ref: '#/definitions/response.FailureResponse'
+      summary: Edits a shortlink
+      tags:
+      - Short
+swagger: "2.0"

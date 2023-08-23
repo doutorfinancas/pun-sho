@@ -76,3 +76,8 @@ migration/force:
 .PHONY: image-push
 image-push:
 	@build-tools/tag.sh
+
+.PHONY: docs
+docs:
+	@swag init --parseDependency --parseInternal --parseDepth 1
+	@rm docs/docs.go
