@@ -34,6 +34,17 @@ func (h *shortenerHandler) Group() *string {
 	return str.ToStringNil("short")
 }
 
+// GetLinkInformation godoc
+// @Tags Short
+// @Summary get your shortlink information
+// @Schemes
+// @Description retrieves full information for the give shortlink
+// @Param token header string false "Authorization token"
+// @Param id path string true "ShortLink ID"
+// @Success 200 {object} entity.Shorty "response"
+// @Failure 400 {object} response.FailureResponse "error"
+// @Failure 404 {object} response.FailureResponse "not found"
+// @Router /short/{id} [get]
 func (h *shortenerHandler) GetLinkInformation(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
@@ -52,6 +63,16 @@ func (h *shortenerHandler) GetLinkInformation(c *gin.Context) {
 	c.JSON(http.StatusOK, shorty)
 }
 
+// ListLinks godoc
+// @Tags Short
+// @Summary Lists your shorlinks
+// @Schemes
+// @Description Lists all the shortlinks available
+// @Param token header string false "Authorization token"
+// @Produce json
+// @Success 200 {object} []entity.Shorty "response"
+// @Failure 400 {object} response.FailureResponse "error"
+// @Router /short [get]
 func (h *shortenerHandler) ListLinks(c *gin.Context) {
 	limitStr := c.Query("limit")
 	offsetStr := c.Query("offset")
@@ -77,6 +98,17 @@ func (h *shortenerHandler) ListLinks(c *gin.Context) {
 	c.JSON(http.StatusOK, links)
 }
 
+// CreateLink godoc
+// @Tags Short
+// @Summary Creates a shortlink for a given url
+// @Schemes
+// @Description Creates a shortlink for a given url, optionally setting a ttl and a redirection limit
+// @Param token header string false "Authorization token"
+// @Param request body request.CreateShorty true "Request"
+// @Produce json
+// @Success 201 {object} entity.Shorty "response"
+// @Failure 400 {object} response.FailureResponse "error"
+// @Router /short [post]
 func (h *shortenerHandler) CreateLink(c *gin.Context) {
 	m := &request.CreateShorty{}
 	err := c.BindJSON(m)
@@ -100,6 +132,19 @@ func (h *shortenerHandler) CreateLink(c *gin.Context) {
 	c.JSON(http.StatusCreated, s)
 }
 
+// EditLink godoc
+// @Tags Short
+// @Summary Edits a shortlink
+// @Schemes
+// @Description Edits a shortlink, allowing to set TTL, cancel the link or change the redirection limit or associated link
+// @Param token header string false "Authorization token"
+// @Param id path string true "ShortLink ID"
+// @Param request body request.UpdateShorty true "Request"
+// @Produce json
+// @Success 200 {object} entity.Shorty "response"
+// @Failure 400 {object} response.FailureResponse "error"
+// @Failure 404 {object} response.FailureResponse "not found"
+// @Router /short/{id} [patch]
 func (h *shortenerHandler) EditLink(c *gin.Context) {
 	id := c.Param("id")
 	m := &request.UpdateShorty{}
@@ -130,6 +175,19 @@ func (h *shortenerHandler) EditLink(c *gin.Context) {
 	c.JSON(http.StatusOK, updatedShorty)
 }
 
+// RemoveLink godoc
+// @Tags Short
+// @Summary Deletes a shortlink
+// @Schemes
+// @Description Deletes a shortlink
+// @Param token header string false "Authorization token"
+// @Param id path string true "ShortLink ID"
+// @Param request body request.UpdateShorty true "Request"
+// @Produce json
+// @Success 204 string false ""
+// @Failure 400 {object} response.FailureResponse "error"
+// @Failure 404 {object} response.FailureResponse "not found"
+// @Router /short/{id} [delete]
 func (h *shortenerHandler) RemoveLink(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
@@ -146,5 +204,5 @@ func (h *shortenerHandler) RemoveLink(c *gin.Context) {
 			response.NewFailure("kaput, no delete"),
 		)
 	}
-	c.JSON(http.StatusOK, nil)
+	c.JSON(http.StatusNoContent, nil)
 }

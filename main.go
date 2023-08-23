@@ -17,6 +17,12 @@ import (
 
 const Timestamp = "timestamp"
 
+// @title           Pun Sho API
+// @version         0.2
+// @description     Create your shortlinks with QRCodes and more!
+
+// @BasePath  /api/v1
+
 func main() {
 	loggerConfig := zap.NewProductionConfig()
 	loggerConfig.EncoderConfig.TimeKey = Timestamp

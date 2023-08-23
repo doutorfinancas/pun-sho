@@ -1,0 +1,487 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Create your shortlinks with QRCodes and more!",
+        "title": "Pun Sho API",
+        "contact": {},
+        "version": "0.2"
+    },
+    "basePath": "/api/v1",
+    "paths": {
+        "/preview": {
+            "post": {
+                "description": "Creates a QR Code preview for a given url",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Preview"
+                ],
+                "summary": "Creates a QR Code preview for a given url",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "token",
+                        "in": "header"
+                    },
+                    {
+                        "description": "Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GeneratePreview"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "response",
+                        "schema": {
+                            "$ref": "#/definitions/response.GeneratePreviewResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "error",
+                        "schema": {
+                            "$ref": "#/definitions/response.FailureResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/short": {
+            "get": {
+                "description": "Lists all the shortlinks available",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Short"
+                ],
+                "summary": "Lists your shorlinks",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "token",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "response",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entity.Shorty"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "error",
+                        "schema": {
+                            "$ref": "#/definitions/response.FailureResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a shortlink for a given url, optionally setting a ttl and a redirection limit",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Short"
+                ],
+                "summary": "Creates a shortlink for a given url",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "token",
+                        "in": "header"
+                    },
+                    {
+                        "description": "Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateShorty"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "response",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Shorty"
+                        }
+                    },
+                    "400": {
+                        "description": "error",
+                        "schema": {
+                            "$ref": "#/definitions/response.FailureResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/short/{id}": {
+            "get": {
+                "description": "retrieves full information for the give shortlink",
+                "tags": [
+                    "Short"
+                ],
+                "summary": "get your shortlink information",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "token",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "ShortLink ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "response",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Shorty"
+                        }
+                    },
+                    "400": {
+                        "description": "error",
+                        "schema": {
+                            "$ref": "#/definitions/response.FailureResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.FailureResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deletes a shortlink",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Short"
+                ],
+                "summary": "Deletes a shortlink",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "token",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "ShortLink ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateShorty"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "error",
+                        "schema": {
+                            "$ref": "#/definitions/response.FailureResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.FailureResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Edits a shortlink, allowing to set TTL, cancel the link or change the redirection limit or associated link",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Short"
+                ],
+                "summary": "Edits a shortlink",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "token",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "ShortLink ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateShorty"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "response",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Shorty"
+                        }
+                    },
+                    "400": {
+                        "description": "error",
+                        "schema": {
+                            "$ref": "#/definitions/response.FailureResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.FailureResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "entity.Meta": {
+            "type": "object",
+            "properties": {
+                "meta_collection": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.MetaValues"
+                    }
+                }
+            }
+        },
+        "entity.MetaValues": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "entity.Shorty": {
+            "type": "object",
+            "properties": {
+                "TTL": {
+                    "type": "string"
+                },
+                "accesses": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.ShortyAccess"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "qr_code": {
+                    "type": "string"
+                },
+                "redirection_limit": {
+                    "type": "integer"
+                },
+                "redirects": {
+                    "type": "integer"
+                },
+                "short_link": {
+                    "type": "string"
+                },
+                "visits": {
+                    "type": "integer"
+                }
+            }
+        },
+        "entity.ShortyAccess": {
+            "type": "object",
+            "properties": {
+                "browser": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "extra": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "ip": {
+                    "type": "string"
+                },
+                "meta": {
+                    "$ref": "#/definitions/entity.Meta"
+                },
+                "os": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "user_agent": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.CreateShorty": {
+            "type": "object",
+            "properties": {
+                "TTL": {
+                    "type": "string"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "qr_code": {
+                    "$ref": "#/definitions/request.QRCode"
+                },
+                "redirection_limit": {
+                    "type": "integer"
+                }
+            }
+        },
+        "request.GeneratePreview": {
+            "type": "object",
+            "properties": {
+                "link": {
+                    "type": "string"
+                },
+                "qr_code": {
+                    "$ref": "#/definitions/request.QRCode"
+                }
+            }
+        },
+        "request.QRCode": {
+            "type": "object",
+            "properties": {
+                "background_color": {
+                    "type": "string"
+                },
+                "border_width": {
+                    "type": "integer"
+                },
+                "create": {
+                    "type": "boolean"
+                },
+                "foreground_color": {
+                    "type": "string"
+                },
+                "logo": {
+                    "type": "string"
+                },
+                "shape": {
+                    "type": "string"
+                },
+                "width": {
+                    "type": "integer"
+                }
+            }
+        },
+        "request.UpdateShorty": {
+            "type": "object",
+            "properties": {
+                "TTL": {
+                    "type": "string"
+                },
+                "cancel": {
+                    "type": "boolean"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "redirection_limit": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.FailureResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.GeneratePreviewResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "qr_code": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

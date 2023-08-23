@@ -21,15 +21,26 @@ func NewPreviewHandler(qrSvc *service.QRCodeService) HTTPHandler {
 }
 
 func (h *previewHandler) Routes(rg *gin.RouterGroup) {
-	rg.POST("", h.CreateLink)
-	rg.POST("/", h.CreateLink)
+	rg.POST("", h.CreatePreview)
+	rg.POST("/", h.CreatePreview)
 }
 
 func (h *previewHandler) Group() *string {
 	return str.ToStringNil("preview")
 }
 
-func (h *previewHandler) CreateLink(c *gin.Context) {
+// CreatePreview godoc
+// @Tags Preview
+// @Summary Creates a QR Code preview for a given url
+// @Schemes
+// @Description Creates a QR Code preview for a given url
+// @Param token header string false "Authorization token"
+// @Param request body request.GeneratePreview true "Request"
+// @Produce json
+// @Success 201 {object} response.GeneratePreviewResponse "response"
+// @Failure 400 {object} response.FailureResponse "error"
+// @Router /preview [post]
+func (h *previewHandler) CreatePreview(c *gin.Context) {
 	m := &request.GeneratePreview{}
 	err := c.BindJSON(m)
 
@@ -44,7 +55,7 @@ func (h *previewHandler) CreateLink(c *gin.Context) {
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
-			response.NewFailure("kaput, no save"),
+			response.NewFailure("failed to generate preview"),
 		)
 		return
 	}

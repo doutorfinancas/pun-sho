@@ -39,6 +39,8 @@ you can use either `cockroach` or `postgres` as value for the `DB_ADAPTOR`
 
 If you want to use `cockroach`, you can create a free account [here](https://cockroachlabs.cloud/)
 
+Bellow are a few examples of how to use the API. You can find the documentation [here](https://doutorfinancas.github.io/pun-sho/)
+
 ### Create a short link
 ```bash
 read -r -d '' BODY <<EOF
@@ -84,6 +86,43 @@ This would render an answer like:
 }
 ```
 
+### Edit a short link
+It's also possible to edit a shortlink, by using the PATCH method
+
+```bash
+read -r -d '' BODY <<EOF
+{                
+  "link": "https://www.google.pt/",
+  "TTL": "2023-03-25T23:59:59Z",
+  "redirection_limit": 5,
+  "cancel": false,
+}
+EOF
+
+curl -XPATCH http://localhost:8080/api/v1/short/4b677dfe-e17a-46e7-9cd2-25a45e8cb19c \
+  -H 'token: ThisIsA5uper$ecureAPIToken' \
+  -H 'Content-Type: application/json' \
+  -d $BODY
+```
+
+The response is equal to the POST one:
+```json
+{
+  "id":"4b677dfe-e17a-46e7-9cd2-25a45e8cb19c",
+  "link":"https://www.google.pt/",
+  "TTL":"2023-03-25T23:59:59Z",
+  "redirection_limit": 5,
+  "created_at":"2023-03-20T10:50:38.399449Z",
+  "deleted_at":null,
+  "accesses":null,
+  "qr_code": "data:image/png;base64,ASfojih134kjhas9f8798134lk2fasf...",
+  "short_link":"https://env.configured.domain/s/SEdeyZByeP",
+  "visits":0,
+  "redirects":0
+}
+```
+
+### Preview QR code
 If you want to preview the QR code only, you can use the preview endpoint with the same body as above
 No TTL exists in that endpoint though (as its only preview mode), and the link is exactly the one you sent
 ```bash
@@ -214,5 +253,5 @@ we will be releasing 0.X until we bind a contract to the API
   - [ ] Dashboard with overview
   - [ ] Ability to track a specific link data
   - [ ] Show list of links with filters (by date range, status)
-- [ ] Allow better security (oauth2 or even simple jwt)
-- [ ] Add GitHub pages with openapi/swagger definition
+- [ ] Allow better security (variable API Key, oauth2 or even simple jwt)
+- [X] Add GitHub pages with openapi/swagger definition #19
