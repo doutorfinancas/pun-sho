@@ -1,2 +1,2 @@
-ALTER TABLE pun_sho.shorty_accesses
+ALTER TABLE shorty_accesses
     DROP COLUMN status;

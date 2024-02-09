@@ -6,7 +6,7 @@ SHELL         := /usr/bin/env bash
 export
 
 export COCKROACHDB_URL="cockroachdb://$$DB_USERNAME:$$DB_PASSWORD@$$DB_URL:$$DB_PORT/$$DB_NAME?sslmode=verify-full"
-export POSTGRES_URL="postgresql://$$DB_USERNAME:$$DB_PASSWORD@$$DB_URL:$$DB_PORT/$$DB_NAME"
+export POSTGRES_URL="postgresql://$$DB_USERNAME:$$DB_PASSWORD@$$DB_URL:$$DB_PORT/$$DB_NAME?sslmode=disable"
 
 MOCKS_FOLDER=mocks
 
@@ -81,3 +81,8 @@ image-push:
 docs:
 	@swag init --parseDependency --parseInternal --parseDepth 1
 	@rm docs/docs.go
+
+.PHONY: postgres
+postgres:
+	@docker-compose -f docker-compose.yml  up -d
+	@sleep 5

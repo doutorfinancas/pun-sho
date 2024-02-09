@@ -1,2 +1,2 @@
-ALTER TABLE pun_sho.shorties
+ALTER TABLE shorties
     DROP COLUMN qr_code;

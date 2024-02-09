@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	postGreConnection = "postgresql://%s:%s@%s:%d/%s?sslmode=verify-full"
-	mySQLConnection   = "%s:%s@tcp(%s:%d)/%s?query"
+	postGreConnection = "postgresql://%s:%s@%s:%d/%s?sslmode=%s"
+	mySQLConnection   = "%s:%s@tcp(%s:%d)/%s?query%s"
 )
 
 const (
@@ -23,13 +23,19 @@ type Config struct {
 	User         string
 	Pass         string
 	DatabaseType int
+	SSLMode      string
 }
 
 func (c *Config) ConnectionString() *string {
 	var connString string
+	var sslMode string
 	switch c.DatabaseType {
 	case PostGreType:
 		connString = postGreConnection
+		sslMode = c.SSLMode
+		if c.SSLMode == "" {
+			sslMode = "full-verify"
+		}
 	case MySQLType:
 		connString = mySQLConnection
 	}
@@ -41,6 +47,7 @@ func (c *Config) ConnectionString() *string {
 			c.Host,
 			c.Port,
 			c.Database,
+			sslMode,
 		),
 	)
 }
