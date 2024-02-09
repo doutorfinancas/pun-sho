@@ -15,6 +15,7 @@ type Config struct {
 	DBName      string `env:"DB_NAME"`
 	DBHost      string `env:"DB_URL"`
 	DBPort      int    `env:"DB_PORT"`
+	SSLMode     string `env:"SSL_MODE"`
 }
 
 func (c *Config) GetDatabaseConfig() *database.Config {
@@ -24,6 +25,7 @@ func (c *Config) GetDatabaseConfig() *database.Config {
 		Database:     c.DBName,
 		User:         c.DBUsername,
 		Pass:         c.DBPassword,
+		SSLMode:      c.SSLMode,
 		DatabaseType: database.PostGreType,
 	}
 }

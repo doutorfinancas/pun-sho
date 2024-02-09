@@ -4,8 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/doutorfinancas/pun-sho/str"
 )
 
 func TestConfig_ConnectionString(t *testing.T) {
@@ -15,11 +13,12 @@ func TestConfig_ConnectionString(t *testing.T) {
 		Database string
 		User     string
 		Pass     string
+		Mode     string
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   *string
+		want   string
 	}{
 		{
 			"Connection Successful",
@@ -29,8 +28,33 @@ func TestConfig_ConnectionString(t *testing.T) {
 				"test",
 				"root",
 				"test123",
+				"disable",
 			},
-			str.ToStringNil("postgresql://root:test123@192.168.0.1:3306/test?sslmode=verify-full"),
+			"postgresql://root:test123@192.168.0.1:3306/test?sslmode=disable",
+		},
+		{
+			"Connection Successful with default, gets full-verify",
+			fields{
+				"192.168.0.1",
+				3306,
+				"test",
+				"root",
+				"test123",
+				"",
+			},
+			"postgresql://root:test123@192.168.0.1:3306/test?sslmode=full-verify",
+		},
+		{
+			"Connection Successful with full verify",
+			fields{
+				"192.168.0.1",
+				3306,
+				"test",
+				"root",
+				"test123",
+				"full-verify",
+			},
+			"postgresql://root:test123@192.168.0.1:3306/test?sslmode=full-verify",
 		},
 	}
 	for _, tt := range tests {
@@ -42,9 +66,10 @@ func TestConfig_ConnectionString(t *testing.T) {
 					Database: tt.fields.Database,
 					User:     tt.fields.User,
 					Pass:     tt.fields.Pass,
+					SSLMode:  tt.fields.Mode,
 				}
 
-				assert.Equal(t, tt.want, c.ConnectionString())
+				assert.Equal(t, tt.want, *c.ConnectionString())
 			},
 		)
 	}
