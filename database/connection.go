@@ -13,14 +13,14 @@ const (
 	MaxConnections = 10
 )
 
-func Connect(c *Config) (*gorm.DB, error) {
+func Connect(c *Config, gb *gorm.Config) (*gorm.DB, error) {
 	var db *gorm.DB
 	var err error
 	switch c.DatabaseType {
 	case PostGreType:
-		db, err = gorm.Open(postgres.Open(*c.ConnectionString()), &gorm.Config{})
+		db, err = gorm.Open(postgres.Open(*c.ConnectionString()), gb)
 	case MySQLType:
-		db, err = gorm.Open(mysql.Open(*c.ConnectionString()), &gorm.Config{})
+		db, err = gorm.Open(mysql.Open(*c.ConnectionString()), gb)
 	}
 
 	dbConfig, _ := db.DB()

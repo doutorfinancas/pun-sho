@@ -8,6 +8,8 @@ import (
 	"github.com/subosito/gotenv"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"gorm.io/gorm"
+	"moul.io/zapgorm2"
 
 	"github.com/doutorfinancas/pun-sho/api"
 	"github.com/doutorfinancas/pun-sho/database"
@@ -31,7 +33,13 @@ func main() {
 	log, _ := loggerConfig.Build()
 	cfg := &api.Config{}
 	handleEnv(log, cfg)
-	g, err := database.Connect(cfg.GetDatabaseConfig())
+
+	gormLog := zapgorm2.New(log)
+	gormLog.SetAsDefault()
+	g, err := database.Connect(
+		cfg.GetDatabaseConfig(),
+		&gorm.Config{Logger: gormLog},
+	)
 	if err != nil {
 		log.Fatal("can't connect to database")
 	}
@@ -43,7 +51,7 @@ func main() {
 	shortySvc := service.NewShortyService(cfg.HostName, cfg.QRLogo, log, shortyRepo, shortyAccessRepo, qrSvc)
 
 	a := api.NewAPI(log, cfg, shortySvc, qrSvc)
-
+	log.Info("Ru")
 	a.Run()
 }
 
