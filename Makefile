@@ -6,7 +6,7 @@ SHELL         := /usr/bin/env bash
 export
 
 export COCKROACHDB_URL="cockroachdb://$$DB_USERNAME:$$DB_PASSWORD@$$DB_URL:$$DB_PORT/$$DB_NAME?sslmode=verify-full"
-export POSTGRES_URL="postgresql://$$DB_USERNAME:$$DB_PASSWORD@$$DB_URL:$$DB_PORT/$$DB_NAME?sslmode=disable"
+export POSTGRES_URL="postgresql://$$DB_USERNAME:$$DB_PASSWORD@$$DB_URL:$$DB_PORT/$$DB_NAME?sslmode=$$SSL_MODE&sslrootcert=/Users/ricardolopes/.postgresql/global-bundle.pem"
 
 MOCKS_FOLDER=mocks
 
