@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	PublicIDSize          = 10
+	DefaultPublicIDLength = 10
 	StatusRedirected      = "redirected"
 	StatusBlocked         = "blocked"
 	StatusExpired         = "expired"
@@ -33,16 +33,22 @@ type ShortyService struct {
 	shortyRepository       *entity.ShortyRepository
 	shortyAccessRepository *entity.ShortyAccessRepository
 	qrSvc                  *QRCodeService
+	publicIDLength         int
 }
 
 func NewShortyService(
-	hostName,
-	logo string,
 	log *zap.Logger,
 	shortyRepository *entity.ShortyRepository,
 	shortyAccessRepository *entity.ShortyAccessRepository,
 	qrSvc *QRCodeService,
+	hostName,
+	logo string,
+	publicIDLength int,
 ) *ShortyService {
+	if publicIDLength == 0 {
+		publicIDLength = DefaultPublicIDLength
+	}
+
 	return &ShortyService{
 		hostName:               strings.TrimSuffix(hostName, "/"),
 		logo:                   logo,
@@ -50,12 +56,13 @@ func NewShortyService(
 		shortyRepository:       shortyRepository,
 		shortyAccessRepository: shortyAccessRepository,
 		qrSvc:                  qrSvc,
+		publicIDLength:         publicIDLength,
 	}
 }
 
 func (s *ShortyService) Create(req *request.CreateShorty) (*entity.Shorty, error) {
 	m := &entity.Shorty{
-		PublicID:         str.RandStringRunes(PublicIDSize),
+		PublicID:         str.RandStringRunes(s.publicIDLength),
 		Link:             req.Link,
 		TTL:              req.TTL,
 		RedirectionLimit: req.RedirectionLimit,
