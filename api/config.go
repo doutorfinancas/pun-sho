@@ -5,17 +5,18 @@ import (
 )
 
 type Config struct {
-	Port        int    `env:"API_PORT"`
-	Token       string `env:"AUTH_TOKEN"`
-	HostName    string `env:"HOST_NAME"`
-	UnknownPage string `env:"UNKNOWN_PAGE"`
-	QRLogo      string `env:"QR_PNG_LOGO"`
-	DBUsername  string `env:"DB_USERNAME"`
-	DBPassword  string `env:"DB_PASSWORD"`
-	DBName      string `env:"DB_NAME"`
-	DBHost      string `env:"DB_URL"`
-	DBPort      int    `env:"DB_PORT"`
-	SSLMode     string `env:"SSL_MODE"`
+	Port           int    `env:"API_PORT"`
+	Token          string `env:"AUTH_TOKEN"`
+	HostName       string `env:"HOST_NAME"`
+	UnknownPage    string `env:"UNKNOWN_PAGE"`
+	QRLogo         string `env:"QR_PNG_LOGO"`
+	DBUsername     string `env:"DB_USERNAME"`
+	DBPassword     string `env:"DB_PASSWORD"`
+	DBName         string `env:"DB_NAME"`
+	DBHost         string `env:"DB_URL"`
+	DBPort         int    `env:"DB_PORT"`
+	SSLMode        string `env:"SSL_MODE"`
+	PublicIDLength int    `env:"PUBLIC_ID_LENGTH"`
 }
 
 func (c *Config) GetDatabaseConfig() *database.Config {
