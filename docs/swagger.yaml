@@ -94,6 +94,10 @@ definitions:
         type: string
       logo:
         type: string
+      output_format:
+        default: png
+        example: svg
+        type: string
       shape:
         type: string
       width:
