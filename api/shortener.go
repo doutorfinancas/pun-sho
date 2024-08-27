@@ -41,6 +41,8 @@ func (h *shortenerHandler) Group() *string {
 // @Description retrieves full information for the give shortlink
 // @Param token header string false "Authorization token"
 // @Param id path string true "ShortLink ID"
+// @Param from query string true "accesses from date 'YYYY-mm-dd'"
+// @Param until query string true "accesses until date 'YYYY-mm-dd'"
 // @Success 200 {object} entity.Shorty "response"
 // @Failure 400 {object} response.FailureResponse "error"
 // @Failure 404 {object} response.FailureResponse "not found"
@@ -54,7 +56,9 @@ func (h *shortenerHandler) GetLinkInformation(c *gin.Context) {
 		)
 	}
 	parsed := uuid.MustParse(id)
-	shorty, err := h.shortySvc.FindShortyByID(parsed)
+	from := c.Query("from")
+	until := c.Query("until")
+	shorty, err := h.shortySvc.FindShortyByID(parsed, from, until)
 	if err != nil {
 		c.JSON(http.StatusNotFound, "shorty not found")
 		return
@@ -157,7 +161,7 @@ func (h *shortenerHandler) EditLink(c *gin.Context) {
 		return
 	}
 
-	shorty, err := h.shortySvc.FindShortyByID(uuid.MustParse(id))
+	shorty, err := h.shortySvc.FindShortyByID(uuid.MustParse(id), "", "")
 	if err != nil {
 		c.JSON(http.StatusNotFound, "shorty not found")
 		return

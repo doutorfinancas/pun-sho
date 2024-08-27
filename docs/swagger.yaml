@@ -269,6 +269,16 @@ paths:
         name: id
         required: true
         type: string
+      - description: accesses from date 'YYYY-mm-dd'
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: accesses until date 'YYYY-mm-dd'
+        in: query
+        name: until
+        required: true
+        type: string
       responses:
         "200":
           description: response
