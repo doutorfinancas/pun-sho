@@ -427,6 +427,11 @@
                 "logo": {
                     "type": "string"
                 },
+                "output_format": {
+                    "type": "string",
+                    "default": "png",
+                    "example": "svg"
+                },
                 "shape": {
                     "type": "string"
                 },

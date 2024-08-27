@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/Netflix/go-env v0.0.0-20220526054621-78278af1949d
+	github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b
 	github.com/gin-contrib/gzip v0.0.6
 	github.com/gin-contrib/zap v0.1.0
 	github.com/gin-gonic/gin v1.9.0

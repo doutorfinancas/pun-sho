@@ -48,7 +48,7 @@ func (h *urlHandler) RedirectLinkIfExists(c *gin.Context) {
 
 	req := &request.Redirect{
 		UserAgent: c.Request.UserAgent(),
-		IP:        c.ClientIP(),
+		IP:        ReadUserIP(c.Request),
 		Meta:      meta,
 		Extra:     fmt.Sprintf("Map: %v", c.Request.URL.Query()),
 	}
@@ -61,4 +61,15 @@ func (h *urlHandler) RedirectLinkIfExists(c *gin.Context) {
 
 	c.Header("Cache-Control", "private, max-age=90")
 	c.Redirect(http.StatusMovedPermanently, sho.Link)
+}
+
+func ReadUserIP(r *http.Request) string {
+	IPAddress := r.Header.Get("X-Real-Ip")
+	if IPAddress == "" {
+		IPAddress = r.Header.Get("X-Forwarded-For")
+	}
+	if IPAddress == "" {
+		IPAddress = r.RemoteAddr
+	}
+	return IPAddress
 }
