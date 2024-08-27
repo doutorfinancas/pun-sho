@@ -170,13 +170,34 @@ func (s *ShortyService) List(limit, offset int) ([]*entity.Shorty, error) {
 	return shorties, nil
 }
 
-func (s *ShortyService) FindShortyByID(id uuid.UUID) (*entity.Shorty, error) {
+func (s *ShortyService) FindShortyByID(id uuid.UUID, from, until string) (*entity.Shorty, error) {
 	m := &entity.Shorty{
 		ID: id,
 	}
 
 	if err := s.shortyRepository.Database.FetchOne(m); err != nil {
 		return nil, err
+	}
+
+	if from != "" && until != "" {
+		fromTime, err := time.Parse(time.DateOnly, from)
+		if err != nil {
+			return nil, err
+		}
+
+		untilTime, err := time.Parse(time.DateTime, until+" 23:59:59")
+		if err != nil {
+			return nil, err
+		}
+
+		sh := s.FindAllAccessesByShortyIDAndDateRange(id, &fromTime, &untilTime)
+
+		m.ShortyAccesses = sh
+
+		m.Visits = len(sh)
+		m.RedirectCount = CountRedirects(sh)
+
+		return m, nil
 	}
 
 	sh := s.FindAllAccessesByShortyID(id)
@@ -212,6 +233,21 @@ func (s *ShortyService) FindAllAccessesByShortyID(id uuid.UUID) []entity.ShortyA
 		&entity.ShortyAccess{ShortyID: id},
 		&sh,
 	)
+
+	return sh
+}
+
+func (s *ShortyService) FindAllAccessesByShortyIDAndDateRange(
+	id uuid.UUID,
+	from,
+	until *time.Time,
+) []entity.ShortyAccess {
+	var sh []entity.ShortyAccess
+
+	_ = s.shortyAccessRepository.Database.Orm.
+		Model(&entity.ShortyAccess{}).
+		Where("shorty_id = ?", id).
+		Where("created_at BETWEEN ? AND ?", from, until).Scan(&sh)
 
 	return sh
 }

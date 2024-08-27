@@ -149,6 +149,20 @@
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "accesses from date 'YYYY-mm-dd'",
+                        "name": "from",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "accesses until date 'YYYY-mm-dd'",
+                        "name": "until",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
