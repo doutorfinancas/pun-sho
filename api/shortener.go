@@ -41,8 +41,8 @@ func (h *shortenerHandler) Group() *string {
 // @Description retrieves full information for the give shortlink
 // @Param token header string false "Authorization token"
 // @Param id path string true "ShortLink ID"
-// @Param from query string true "accesses from date 'YYYY-mm-dd'"
-// @Param until query string true "accesses until date 'YYYY-mm-dd'"
+// @Param from query string false "accesses from date 'YYYY-mm-dd'"
+// @Param until query string false "accesses until date 'YYYY-mm-dd'"
 // @Success 200 {object} entity.Shorty "response"
 // @Failure 400 {object} response.FailureResponse "error"
 // @Failure 404 {object} response.FailureResponse "not found"
