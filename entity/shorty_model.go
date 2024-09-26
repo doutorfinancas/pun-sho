@@ -14,7 +14,7 @@ type Shorty struct {
 	RedirectionLimit *int           `json:"redirection_limit" gorm:"column:redirection_limit"`
 	CreatedAt        *time.Time     `json:"created_at" gorm:"column:created_at"`
 	DeletedAt        *time.Time     `json:"deleted_at" gorm:"column:deleted_at"`
-	ShortyAccesses   []ShortyAccess `json:"accesses" gorm:"-"`
+	ShortyAccesses   []ShortyAccess `json:"accesses,omitempty" gorm:"-"`
 	ShortLink        string         `json:"short_link" gorm:"-"`
 	Visits           int            `json:"visits" gorm:"-"`
 	RedirectCount    int            `json:"redirects" gorm:"-"`

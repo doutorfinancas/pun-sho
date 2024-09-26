@@ -161,6 +161,12 @@
                         "description": "accesses until date 'YYYY-mm-dd'",
                         "name": "until",
                         "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "display accesses column",
+                        "name": "showAccesses",
+                        "in": "query"
                     }
                 ],
                 "responses": {
