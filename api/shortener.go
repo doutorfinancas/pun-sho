@@ -44,7 +44,7 @@ func (h *shortenerHandler) Group() *string {
 // @Param id path string true "ShortLink ID"
 // @Param from query string false "accesses from date 'YYYY-mm-dd'"
 // @Param until query string false "accesses until date 'YYYY-mm-dd'"
-// @Param showAccesses query boolean false "display accesses column"
+// @Param show_accesses query boolean false "display accesses column"
 // @Success 200 {object} entity.Shorty "response"
 // @Failure 400 {object} response.FailureResponse "error"
 // @Failure 404 {object} response.FailureResponse "not found"
@@ -61,13 +61,13 @@ func (h *shortenerHandler) GetLinkInformation(c *gin.Context) {
 	from := c.Query("from")
 	until := c.Query("until")
 
-	showAccessesStr := c.Query("showAccesses")
+	showAccessesStr := c.Query("show_accesses")
 	showAccesses := true
 	if showAccessesStr != "" {
 		var err error
 		showAccesses, err = strconv.ParseBool(showAccessesStr)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "Invalid value for showAccesses"})
+			c.JSON(http.StatusBadRequest, "invalid value for show_accesses")
 			return
 		}
 	}
