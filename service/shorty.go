@@ -170,7 +170,7 @@ func (s *ShortyService) List(limit, offset int) ([]*entity.Shorty, error) {
 	return shorties, nil
 }
 
-func (s *ShortyService) FindShortyByID(id uuid.UUID, from, until string) (*entity.Shorty, error) {
+func (s *ShortyService) FindShortyByID(id uuid.UUID, from, until string, showAccesses bool) (*entity.Shorty, error) {
 	m := &entity.Shorty{
 		ID: id,
 	}
@@ -192,7 +192,9 @@ func (s *ShortyService) FindShortyByID(id uuid.UUID, from, until string) (*entit
 
 		sh := s.FindAllAccessesByShortyIDAndDateRange(id, &fromTime, &untilTime)
 
-		m.ShortyAccesses = sh
+		if showAccesses {
+			m.ShortyAccesses = sh
+		}
 
 		m.Visits = len(sh)
 		m.RedirectCount = CountRedirects(sh)
@@ -202,7 +204,9 @@ func (s *ShortyService) FindShortyByID(id uuid.UUID, from, until string) (*entit
 
 	sh := s.FindAllAccessesByShortyID(id)
 
-	m.ShortyAccesses = sh
+	if showAccesses {
+		m.ShortyAccesses = sh
+	}
 
 	m.Visits = len(sh)
 	m.RedirectCount = CountRedirects(sh)

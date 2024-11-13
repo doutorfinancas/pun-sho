@@ -277,6 +277,10 @@ paths:
         in: query
         name: until
         type: string
+      - description: display accesses column
+        in: query
+        name: show_accesses
+        type: boolean
       responses:
         "200":
           description: response
