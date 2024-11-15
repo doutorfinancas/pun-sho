@@ -55,6 +55,8 @@ func (a *API) Run() {
 	a.PushHandlerWithGroup(NewShortenerHandler(a.shortySvc), apiGroup)
 	a.PushHandlerWithGroup(NewPreviewHandler(a.qrSvc), apiGroup)
 
+	a.log.Info("API Starting", zap.Int("port", a.config.Port))
+
 	if err := g.Run(fmt.Sprintf(":%d", a.config.Port)); err != nil {
 		a.log.Fatal(err.Error())
 	}

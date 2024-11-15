@@ -1,5 +1,13 @@
 ### Create a short link
 
+< {%
+  var currentDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+  var day = currentDate.getDate()
+  var month = currentDate.getMonth() + 1
+  var year = currentDate.getFullYear()
+  client.global.set('date', year + '-' + month + '-' + day + 'T23:59:59Z');
+%}
+
 # curl -XPOST {{host}}/api/v1/short
 #  -H 'token: {{token}}'
 #  -H 'Content-Type: application/json'
@@ -10,7 +18,7 @@ Content-Type: application/json
 
 {
   "link": "https://www.brave.com/",
-  "TTL": "2023-05-25T23:59:59Z",
+  "TTL": "{{date}}",
   "redirection_limit": 5,
   "qr_code": {
     "create": true,
@@ -56,7 +64,7 @@ token: {{token}}
 ### Get a list of links
 
 # curl -H 'token: {{token}}' {{host}}/api/v1/short/?limit=20&offset=0
-GET {{host}}/api/v1/short/?limit=20&offset=0
+GET {{host}}/api/v1/short/?limit=20&offset=0&with_qr=false
 token: {{token}}
 
 > {%
@@ -71,4 +79,3 @@ token: {{token}}
 %}
 
 ###
-

@@ -34,7 +34,7 @@ func (c *Config) ConnectionString() *string {
 		connString = postGreConnection
 		sslMode = c.SSLMode
 		if c.SSLMode == "" {
-			sslMode = "full-verify"
+			sslMode = "verify-full"
 		}
 	case MySQLType:
 		connString = mySQLConnection

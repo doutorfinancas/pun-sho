@@ -176,6 +176,18 @@ paths:
         in: header
         name: token
         type: string
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      - description: offset
+        in: query
+        name: offset
+        type: integer
+      - description: include qr code
+        in: query
+        name: with_qr
+        type: boolean
       produces:
       - application/json
       responses:

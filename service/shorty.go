@@ -161,10 +161,10 @@ func (s *ShortyService) CreateVisit(publicID string, req *request.Redirect) (*en
 	return sh, nil
 }
 
-func (s *ShortyService) List(limit, offset int) ([]*entity.Shorty, error) {
-	shorties, err := s.shortyRepository.List(limit, offset)
+func (s *ShortyService) List(withQR bool, limit, offset int) ([]*entity.ShortyForList, error) {
+	shorties, err := s.shortyRepository.ListWithAccessData(withQR, limit, offset)
 	if err != nil {
-		return []*entity.Shorty{}, err
+		return nil, err
 	}
 
 	return shorties, nil

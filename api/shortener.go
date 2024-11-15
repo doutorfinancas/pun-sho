@@ -73,6 +73,9 @@ func (h *shortenerHandler) GetLinkInformation(c *gin.Context) {
 // @Schemes
 // @Description Lists all the shortlinks available
 // @Param token header string false "Authorization token"
+// @Param limit query int false "limit"
+// @Param offset query int false "offset"
+// @Param with_qr query bool false "include qr code"
 // @Produce json
 // @Success 200 {object} []entity.Shorty "response"
 // @Failure 400 {object} response.FailureResponse "error"
@@ -80,6 +83,8 @@ func (h *shortenerHandler) GetLinkInformation(c *gin.Context) {
 func (h *shortenerHandler) ListLinks(c *gin.Context) {
 	limitStr := c.Query("limit")
 	offsetStr := c.Query("offset")
+	withQRStr := c.Query("with_qr")
+	withQR := withQRStr != "false"
 
 	limit, offset, message, err := validateLimitAndOffset(limitStr, offsetStr)
 	if err != nil {
@@ -90,7 +95,7 @@ func (h *shortenerHandler) ListLinks(c *gin.Context) {
 		return
 	}
 
-	links, err := h.shortySvc.List(limit, offset)
+	links, err := h.shortySvc.List(withQR, limit, offset)
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
