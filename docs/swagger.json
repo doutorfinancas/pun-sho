@@ -67,6 +67,24 @@
                         "description": "Authorization token",
                         "name": "token",
                         "in": "header"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "include qr code",
+                        "name": "with_qr",
+                        "in": "query"
                     }
                 ],
                 "responses": {
