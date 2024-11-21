@@ -1,7 +1,7 @@
 # Start from golang base image
-FROM golang:1.20.1-alpine3.17 as build
+FROM golang:1.20.1-alpine3.17 AS build
 
-LABEL org.opencontainers.image.source https://github.com/doutorfinancas/pun-sho
+LABEL org.opencontainers.image.source=https://github.com/doutorfinancas/pun-sho
 
 COPY . /pun_sho
 
