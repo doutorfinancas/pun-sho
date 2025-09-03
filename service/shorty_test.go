@@ -160,88 +160,76 @@ func TestCountRedirects(t *testing.T) {
 }
 
 func TestShortyService_IsSocialMediaBot(t *testing.T) {
-	// Create a ShortyService with the default list of bots
-	service := &ShortyService{
-		allowedSocialBots: []string{
-			"facebookexternalhit",
-			"facebot",
-			"googlebot",
-			"linkedinbot",
-			"twitterbot",
-			"instagram",
-			"instagrambot",
-			"whatsapp",
-			"slackbot",
-			"telegrambot",
-			"discordbot",
-			"pinterestbot",
-			"redditbot",
-			"skypeuri",
-			"applebot",
-			"bingbot",
-			"yandexbot",
+	testCases := []struct {
+		name           string
+		allowedBots    []string
+		userAgent      string
+		expectedResult bool
+	}{
+		// Test case 1: No bots allowed (empty configuration)
+		{
+			name:           "No bots allowed - Facebook bot should be blocked",
+			allowedBots:    []string{},
+			userAgent:      "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+			expectedResult: false,
+		},
+		{
+			name:           "No bots allowed - Google bot should be blocked",
+			allowedBots:    []string{},
+			userAgent:      "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+			expectedResult: false,
+		},
+		{
+			name:           "No bots allowed - Regular browser should pass",
+			allowedBots:    []string{},
+			userAgent:      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+			expectedResult: false,
+		},
+
+		// Test case 2: Only Facebook allowed
+		{
+			name:           "Only Facebook allowed - Facebook bot should pass",
+			allowedBots:    []string{"facebookexternalhit", "facebot"},
+			userAgent:      "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+			expectedResult: true,
+		},
+		{
+			name:           "Only Facebook allowed - Google bot should be blocked",
+			allowedBots:    []string{"facebookexternalhit", "facebot"},
+			userAgent:      "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+			expectedResult: false,
+		},
+
+		// Test case 3: Multiple bots allowed
+		{
+			name:           "Multiple bots - Instagram should pass",
+			allowedBots:    []string{"facebookexternalhit", "googlebot", "instagram", "instagrambot"},
+			userAgent:      "Instagram 76.0.0.15.395 Android",
+			expectedResult: true,
+		},
+		{
+			name:           "Multiple bots - LinkedIn should be blocked",
+			allowedBots:    []string{"facebookexternalhit", "googlebot", "instagram"},
+			userAgent:      "LinkedInBot/1.0",
+			expectedResult: false,
+		},
+
+		// Test case 4: Case sensitivity
+		{
+			name:           "Case insensitive - Mixed case should work",
+			allowedBots:    []string{"googlebot"},
+			userAgent:      "Mozilla/5.0 (compatible; GoogleBot/2.1; +http://www.google.com/bot.html)",
+			expectedResult: true,
 		},
 	}
 
-	tests := []struct {
-		name      string
-		userAgent string
-		want      bool
-	}{
-		{
-			name:      "Facebook External Hit",
-			userAgent: "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
-			want:      true,
-		},
-		{
-			name:      "Google Bot",
-			userAgent: "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
-			want:      true,
-		},
-		{
-			name:      "LinkedIn Bot",
-			userAgent: "LinkedInBot/1.0 (compatible; Mozilla/5.0; Apache-HttpClient +http://www.linkedin.com)",
-			want:      true,
-		},
-		{
-			name:      "Twitter Bot",
-			userAgent: "Twitterbot/1.0",
-			want:      true,
-		},
-		{
-			name:      "Regular Chrome Browser",
-			userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-			want:      false,
-		},
-		{
-			name:      "Regular Safari Browser",
-			userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15",
-			want:      false,
-		},
-		{
-			name:      "Malicious Bot",
-			userAgent: "BadBot/1.0",
-			want:      false,
-		},
-		{
-			name:      "WhatsApp Bot",
-			userAgent: "WhatsApp/2.19.81 A",
-			want:      true,
-		},
-		{
-			name:      "Instagram Bot",
-			userAgent: "Instagram 76.0.0.15.395 Android (24/7.0; 640dpi; 1440x2560; samsung; SM-G930F; herolte; samsungexynos8890; en_US; 138226743)",
-			want:      true,
-		},
-		{
-			name:      "Instagram Bot 2",
-			userAgent: "instagrambot",
-			want:      true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, service.isSocialMediaBot(tt.userAgent))
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			service := &ShortyService{
+				allowedSocialBots: tc.allowedBots,
+			}
+			result := service.isSocialMediaBot(tc.userAgent)
+			assert.Equal(t, tc.expectedResult, result)
 		})
 	}
 }

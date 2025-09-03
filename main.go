@@ -48,7 +48,7 @@ func main() {
 		cfg.HostName,
 		cfg.QRLogo,
 		cfg.PublicIDLength,
-		cfg.GetAllowedSocialBots(),
+		cfg.GetConfiguredSocialBots(),
 	)
 
 	a := api.NewAPI(log, cfg, shortySvc, qrSvc)

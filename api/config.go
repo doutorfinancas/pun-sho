@@ -34,29 +34,11 @@ func (c *Config) GetDatabaseConfig() *database.Config {
 	}
 }
 
-// GetAllowedSocialBots converts the configuration string into a slice of allowed bots
-func (c *Config) GetAllowedSocialBots() []string {
+// GetConfiguredSocialBots converts the configuration string into a slice of configured bots
+// Returns empty slice if not configured, giving full control to each environment
+func (c *Config) GetConfiguredSocialBots() []string {
 	if c.AllowedSocialBots == "" {
-		// Default list of social media bots if not configured
-		return []string{
-			"facebookexternalhit",
-			"facebot",
-			"googlebot",
-			"linkedinbot",
-			"twitterbot",
-			"instagram",
-			"instagrambot",
-			"whatsapp",
-			"slackbot",
-			"telegrambot",
-			"discordbot",
-			"pinterestbot",
-			"redditbot",
-			"skypeuri",
-			"applebot",
-			"bingbot",
-			"yandexbot",
-		}
+		return []string{} // No bots allowed by default - explicit configuration required
 	}
 
 	bots := strings.Split(c.AllowedSocialBots, ",")
