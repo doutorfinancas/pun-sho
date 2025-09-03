@@ -26,10 +26,20 @@ const (
 )
 
 // isSocialMediaBot checks if the User-Agent corresponds to an allowed social media bot
+// Uses precise matching to prevent false positives from malicious user agents
 func (s *ShortyService) isSocialMediaBot(userAgent string) bool {
 	userAgentLower := strings.ToLower(userAgent)
+
 	for _, bot := range s.allowedSocialBots {
-		if strings.Contains(userAgentLower, bot) {
+		botLower := strings.ToLower(bot)
+
+		// Check for exact match or bot name followed by common separators
+		// This prevents false positives like "malicious-facebookexternalhit-exploit"
+		if userAgentLower == botLower ||
+			strings.HasPrefix(userAgentLower, botLower+"/") ||
+			strings.HasPrefix(userAgentLower, botLower+" ") ||
+			strings.Contains(userAgentLower, " "+botLower+"/") ||
+			strings.Contains(userAgentLower, " "+botLower+" ") {
 			return true
 		}
 	}

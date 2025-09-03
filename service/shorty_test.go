@@ -221,6 +221,52 @@ func TestShortyService_IsSocialMediaBot(t *testing.T) {
 			userAgent:      "Mozilla/5.0 (compatible; GoogleBot/2.1; +http://www.google.com/bot.html)",
 			expectedResult: true,
 		},
+		{
+			name:           "Case insensitive - Config with mixed case",
+			allowedBots:    []string{"FacebookExternalHit"},
+			userAgent:      "facebookexternalhit/1.1",
+			expectedResult: true,
+		},
+
+		// Test case 5: Security - False positive prevention
+		{
+			name:           "Security - Malicious bot with prefix should be blocked",
+			allowedBots:    []string{"facebookexternalhit"},
+			userAgent:      "malicious-facebookexternalhit-exploit",
+			expectedResult: false,
+		},
+		{
+			name:           "Security - Malicious bot with suffix should be blocked",
+			allowedBots:    []string{"googlebot"},
+			userAgent:      "googlebot-malicious/1.0",
+			expectedResult: false,
+		},
+		{
+			name:           "Security - Bot name in middle should be blocked",
+			allowedBots:    []string{"linkedinbot"},
+			userAgent:      "evil-linkedinbot-scraper",
+			expectedResult: false,
+		},
+
+		// Test case 6: Valid bot patterns that should work
+		{
+			name:           "Valid - Bot with version",
+			allowedBots:    []string{"facebookexternalhit"},
+			userAgent:      "facebookexternalhit/1.1",
+			expectedResult: true,
+		},
+		{
+			name:           "Valid - Bot with space",
+			allowedBots:    []string{"googlebot"},
+			userAgent:      "Mozilla/5.0 (compatible; googlebot/2.1; +http://www.google.com/bot.html)",
+			expectedResult: true,
+		},
+		{
+			name:           "Valid - Exact bot name",
+			allowedBots:    []string{"instagrambot"},
+			userAgent:      "instagrambot",
+			expectedResult: true,
+		},
 	}
 
 	for _, tc := range testCases {

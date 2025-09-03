@@ -37,17 +37,16 @@ func (c *Config) GetDatabaseConfig() *database.Config {
 // GetConfiguredSocialBots converts the configuration string into a slice of configured bots
 // Returns empty slice if not configured, giving full control to each environment
 func (c *Config) GetConfiguredSocialBots() []string {
-	if c.AllowedSocialBots == "" {
-		return []string{} // No bots allowed by default - explicit configuration required
-	}
-
-	bots := strings.Split(c.AllowedSocialBots, ",")
-	var trimmedBots []string
-	for _, bot := range bots {
-		trimmed := strings.TrimSpace(bot)
-		if trimmed != "" {
-			trimmedBots = append(trimmedBots, trimmed)
+	if c.AllowedSocialBots != "" {
+		bots := strings.Split(c.AllowedSocialBots, ",")
+		var trimmedBots []string
+		for _, bot := range bots {
+			trimmed := strings.TrimSpace(bot)
+			if trimmed != "" {
+				trimmedBots = append(trimmedBots, trimmed)
+			}
 		}
+		return trimmedBots
 	}
-	return trimmedBots
+	return []string{} // No bots allowed by default - explicit configuration required
 }
