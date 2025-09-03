@@ -25,7 +25,7 @@ const (
 	TransparentBackground = "transparent"
 )
 
-// isSocialMediaBot verifica se o User-Agent corresponde a um bot de rede social permitido
+// isSocialMediaBot checks if the User-Agent corresponds to an allowed social media bot
 func (s *ShortyService) isSocialMediaBot(userAgent string) bool {
 	userAgentLower := strings.ToLower(userAgent)
 	for _, bot := range s.allowedSocialBots {

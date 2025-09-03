@@ -34,10 +34,10 @@ func (c *Config) GetDatabaseConfig() *database.Config {
 	}
 }
 
-// GetAllowedSocialBots converte a string de configuração numa slice de bots permitidos
+// GetAllowedSocialBots converts the configuration string into a slice of allowed bots
 func (c *Config) GetAllowedSocialBots() []string {
 	if c.AllowedSocialBots == "" {
-		// Lista padrão de bots de redes sociais se não estiver configurado
+		// Default list of social media bots if not configured
 		return []string{
 			"facebookexternalhit",
 			"facebot",

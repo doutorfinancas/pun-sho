@@ -83,7 +83,7 @@ func TestShortyService_Create(t *testing.T) {
 				s := &ShortyService{
 					hostName:          tt.fields.hostName,
 					shortyRepository:  tt.fields.shortyRepository,
-					allowedSocialBots: []string{}, // Lista vazia para teste
+					allowedSocialBots: []string{}, // Empty list for testing
 				}
 				got, err := s.Create(tt.args.req)
 				if (err != nil) != tt.wantErr {
@@ -160,7 +160,7 @@ func TestCountRedirects(t *testing.T) {
 }
 
 func TestShortyService_IsSocialMediaBot(t *testing.T) {
-	// Criar um ShortyService com a lista padrão de bots
+	// Create a ShortyService with the default list of bots
 	service := &ShortyService{
 		allowedSocialBots: []string{
 			"facebookexternalhit",
