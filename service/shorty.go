@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -26,6 +25,17 @@ const (
 	TransparentBackground = "transparent"
 )
 
+// isSocialMediaBot verifica se o User-Agent corresponde a um bot de rede social permitido
+func (s *ShortyService) isSocialMediaBot(userAgent string) bool {
+	userAgentLower := strings.ToLower(userAgent)
+	for _, bot := range s.allowedSocialBots {
+		if strings.Contains(userAgentLower, bot) {
+			return true
+		}
+	}
+	return false
+}
+
 type ShortyService struct {
 	hostName               string
 	logo                   string
@@ -34,6 +44,7 @@ type ShortyService struct {
 	shortyAccessRepository *entity.ShortyAccessRepository
 	qrSvc                  *QRCodeService
 	publicIDLength         int
+	allowedSocialBots      []string
 }
 
 func NewShortyService(
@@ -44,6 +55,7 @@ func NewShortyService(
 	hostName,
 	logo string,
 	publicIDLength int,
+	allowedSocialBots []string,
 ) *ShortyService {
 	if publicIDLength == 0 {
 		publicIDLength = DefaultPublicIDLength
@@ -57,6 +69,7 @@ func NewShortyService(
 		shortyAccessRepository: shortyAccessRepository,
 		qrSvc:                  qrSvc,
 		publicIDLength:         publicIDLength,
+		allowedSocialBots:      allowedSocialBots,
 	}
 }
 
@@ -134,7 +147,7 @@ func (s *ShortyService) CreateVisit(publicID string, req *request.Redirect) (*en
 	}
 
 	ua := useragent.Parse(req.UserAgent)
-	if ua.Bot {
+	if ua.Bot && !s.isSocialMediaBot(req.UserAgent) {
 		status = StatusBlocked
 	}
 
@@ -155,7 +168,7 @@ func (s *ShortyService) CreateVisit(publicID string, req *request.Redirect) (*en
 	}
 
 	if status != StatusRedirected {
-		return nil, errors.New(fmt.Sprintf("could not redirect due to status %s", status))
+		return nil, fmt.Errorf("could not redirect due to status %s", status)
 	}
 
 	return sh, nil
