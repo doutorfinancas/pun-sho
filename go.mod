@@ -10,6 +10,7 @@ require (
 	github.com/gin-contrib/zap v0.1.0
 	github.com/gin-gonic/gin v1.9.0
 	github.com/google/uuid v1.3.0
+	github.com/lib/pq v1.10.9
 	github.com/mileusna/useragent v1.2.1
 	github.com/stretchr/testify v1.8.2
 	github.com/subosito/gotenv v1.4.2

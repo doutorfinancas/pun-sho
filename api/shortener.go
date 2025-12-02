@@ -113,11 +113,16 @@ func (h *shortenerHandler) ListLinks(c *gin.Context) {
 
 	var labels []string
 	if labelsStr != "" {
-		labels = strings.Split(labelsStr, ",")
-		// Trim whitespace from each label
-		for i := range labels {
-			labels[i] = strings.TrimSpace(labels[i])
+		raw := strings.Split(labelsStr, ",")
+		// Trim whitespace and discard empty entries
+		cleaned := make([]string, 0, len(raw))
+		for i := range raw {
+			l := strings.TrimSpace(raw[i])
+			if l != "" {
+				cleaned = append(cleaned, l)
+			}
 		}
+		labels = cleaned
 	}
 
 	links, err := h.shortySvc.List(withQR, labels, limit, offset)

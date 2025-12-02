@@ -89,6 +89,7 @@ func (s *ShortyService) Create(req *request.CreateShorty) (*entity.Shorty, error
 		Link:             req.Link,
 		TTL:              req.TTL,
 		RedirectionLimit: req.RedirectionLimit,
+		Labels:           req.Labels,
 	}
 
 	m.ShortLink = fmt.Sprintf("%s/s/%s", s.hostName, m.PublicID)
