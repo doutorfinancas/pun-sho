@@ -111,19 +111,7 @@ func (h *shortenerHandler) ListLinks(c *gin.Context) {
 		return
 	}
 
-	var labels []string
-	if labelsStr != "" {
-		raw := strings.Split(labelsStr, ",")
-		// Trim whitespace and discard empty entries
-		cleaned := make([]string, 0, len(raw))
-		for i := range raw {
-			l := strings.TrimSpace(raw[i])
-			if l != "" {
-				cleaned = append(cleaned, l)
-			}
-		}
-		labels = cleaned
-	}
+	labels := parseLabelsParam(labelsStr)
 
 	links, err := h.shortySvc.List(withQR, labels, limit, offset)
 	if err != nil {
@@ -135,6 +123,23 @@ func (h *shortenerHandler) ListLinks(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, links)
+}
+
+func parseLabelsParam(labelsStr string) []string {
+	if labelsStr == "" {
+		return nil
+	}
+
+	raw := strings.Split(labelsStr, ",")
+	cleaned := make([]string, 0, len(raw))
+	for i := range raw {
+		l := strings.TrimSpace(raw[i])
+		if l != "" {
+			cleaned = append(cleaned, l)
+		}
+	}
+
+	return cleaned
 }
 
 // CreateLink godoc

@@ -9,5 +9,5 @@ type CreateShorty struct {
 	TTL              *time.Time `json:"TTL"`
 	RedirectionLimit *int       `json:"redirection_limit"`
 	QRCode           *QRCode    `json:"qr_code"`
-	Labels           []string   `json:"labels"`
+	Labels           []string   `json:"labels,omitempty"`
 }
