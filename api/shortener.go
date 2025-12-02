@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/doutorfinancas/pun-sho/api/response"
 	"github.com/gin-gonic/gin"
@@ -89,6 +90,7 @@ func (h *shortenerHandler) GetLinkInformation(c *gin.Context) {
 // @Param limit query int false "limit"
 // @Param offset query int false "offset"
 // @Param with_qr query bool false "include qr code"
+// @Param labels query string false "filter by labels (comma-separated)"
 // @Produce json
 // @Success 200 {object} []entity.Shorty "response"
 // @Failure 400 {object} response.FailureResponse "error"
@@ -98,6 +100,7 @@ func (h *shortenerHandler) ListLinks(c *gin.Context) {
 	offsetStr := c.Query("offset")
 	withQRStr := c.Query("with_qr")
 	withQR := withQRStr != "false"
+	labelsStr := c.Query("labels")
 
 	limit, offset, message, err := validateLimitAndOffset(limitStr, offsetStr)
 	if err != nil {
@@ -108,7 +111,16 @@ func (h *shortenerHandler) ListLinks(c *gin.Context) {
 		return
 	}
 
-	links, err := h.shortySvc.List(withQR, limit, offset)
+	var labels []string
+	if labelsStr != "" {
+		labels = strings.Split(labelsStr, ",")
+		// Trim whitespace from each label
+		for i := range labels {
+			labels[i] = strings.TrimSpace(labels[i])
+		}
+	}
+
+	links, err := h.shortySvc.List(withQR, labels, limit, offset)
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
