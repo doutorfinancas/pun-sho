@@ -9,4 +9,5 @@ type UpdateShorty struct {
 	TTL              *time.Time `json:"TTL"`
 	RedirectionLimit *int       `json:"redirection_limit"`
 	Cancel           bool       `json:"cancel"`
+	Labels           []string   `json:"labels,omitempty"`
 }
