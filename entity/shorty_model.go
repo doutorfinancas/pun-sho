@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 )
 
 type Shorty struct {
@@ -20,7 +19,7 @@ type Shorty struct {
 	Visits           int            `json:"visits" gorm:"-"`
 	RedirectCount    int            `json:"redirects" gorm:"-"`
 	QRCode           string         `json:"qr_code,omitempty" gorm:"column:qr_code"`
-	Labels           pq.StringArray `json:"labels,omitempty" gorm:"column:labels;type:text[]"`
+	Labels           StringArray `json:"labels,omitempty" gorm:"column:labels;type:text[]"`
 }
 
 func (*Shorty) TableName() string {
@@ -40,5 +39,5 @@ type ShortyForList struct {
 	Visits           int            `json:"visits" gorm:"visits"`
 	Redirects        int            `json:"redirects" gorm:"redirects"`
 	QRCode           string         `json:"qr_code,omitempty" gorm:"column:qr_code"`
-	Labels           pq.StringArray `json:"labels,omitempty" gorm:"column:labels;type:text[]"`
+	Labels           StringArray `json:"labels,omitempty" gorm:"column:labels;type:text[]"`
 }

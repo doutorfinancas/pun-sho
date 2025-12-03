@@ -127,6 +127,10 @@ func (s *ShortyService) Update(req *request.UpdateShorty, m *entity.Shorty) (*en
 		m.RedirectionLimit = req.RedirectionLimit
 	}
 
+	if req.Labels != nil {
+		m.Labels = req.Labels
+	}
+
 	if err := s.shortyRepository.Save(m); err != nil {
 		return nil, err
 	}
