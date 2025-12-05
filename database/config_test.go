@@ -42,7 +42,7 @@ func TestConfig_ConnectionString(t *testing.T) {
 				"test123",
 				"",
 			},
-			"postgresql://root:test123@192.168.0.1:3306/test?sslmode=full-verify",
+			"postgresql://root:test123@192.168.0.1:3306/test?sslmode=verify-full",
 		},
 		{
 			"Connection Successful with full verify",
