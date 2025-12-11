@@ -39,7 +39,7 @@ func (r *ShortyRepository) List(limit, offset int) ([]*Shorty, error) {
 	return rows, nil
 }
 
-func (r *ShortyRepository) ListWithAccessData(listWithQRCode bool, limit, offset int) ([]*ShortyForList, error) {
+func (r *ShortyRepository) ListWithAccessData(listWithQRCode bool, labels []string, limit, offset int) ([]*ShortyForList, error) {
 	rows := make([]*ShortyForList, 0)
 
 	fields := []string{
@@ -50,6 +50,7 @@ func (r *ShortyRepository) ListWithAccessData(listWithQRCode bool, limit, offset
 		"s.link",
 		"s.ttl",
 		"s.redirection_limit",
+		"s.labels",
 	}
 
 	if listWithQRCode {
@@ -58,14 +59,26 @@ func (r *ShortyRepository) ListWithAccessData(listWithQRCode bool, limit, offset
 
 	fieldlist := strings.Join(fields, ", ")
 
-	query := fmt.Sprintf(
+	baseQuery := fmt.Sprintf(
 		`SELECT %s, count(sa.id) as visits, sum(CASE WHEN sa.status = 'redirected' THEN 1 ELSE 0 END) as redirects FROM shorties s 
     INNER JOIN shorty_accesses sa 
-        ON s.id = sa.shorty_id 
-    GROUP BY s.id, s.created_at, s.deleted_at, s.public_id, s.link, s.qr_code, s.ttl, s.redirection_limit
-LIMIT ? OFFSET ?`, fieldlist)
+        ON s.id = sa.shorty_id`, fieldlist)
 
-	if err := r.Database.Orm.Raw(query, limit, offset).Scan(&rows).Error; err != nil {
+	var whereClause string
+	var args []interface{}
+
+	if len(labels) > 0 {
+		// Filter by labels: check if any of the provided labels exist in the labels array
+		whereClause = " WHERE s.labels && ?"
+		args = append(args, fmt.Sprintf("{%s}", strings.Join(labels, ",")))
+	}
+
+	groupByClause := " GROUP BY s.id, s.created_at, s.deleted_at, s.public_id, s.link, s.qr_code, s.ttl, s.redirection_limit, s.labels LIMIT ? OFFSET ?"
+
+	query := baseQuery + whereClause + groupByClause
+	args = append(args, limit, offset)
+
+	if err := r.Database.Orm.Raw(query, args...).Scan(&rows).Error; err != nil {
 		return nil, err
 	}
 

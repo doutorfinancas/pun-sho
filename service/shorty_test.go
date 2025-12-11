@@ -2,7 +2,9 @@ package service
 
 import (
 	"database/sql/driver"
+	"fmt"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -14,30 +16,17 @@ import (
 	"github.com/doutorfinancas/pun-sho/test"
 )
 
+
+
+
 func TestShortyService_Create(t *testing.T) {
 	type fields struct {
-		hostName         string
-		shortyRepository *entity.ShortyRepository
+		hostName string
 	}
+
 	type args struct {
 		req *request.CreateShorty
 	}
-
-	m, db := test.NewMockDB()
-	rows := test.GenerateMockRows(
-		[]string{
-			"created_at",
-		},
-		[][]driver.Value{
-			{
-				time.Now(),
-			},
-		},
-	)
-	req := `INSERT INTO "shorties" ("public_id","link","ttl","redirection_limit","created_at","deleted_at","qr_code") VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING "id"`
-	m.ExpectBegin()
-	m.ExpectQuery(regexp.QuoteMeta(req)).WithArgs().WillReturnRows(rows)
-	m.ExpectCommit()
 
 	tests := []struct {
 		name    string
@@ -47,18 +36,16 @@ func TestShortyService_Create(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "teste1",
+			name: "create shorty without labels",
 			fields: fields{
 				hostName: "batatas.pt",
-				shortyRepository: &entity.ShortyRepository{
-					Repository: test.NewMockRepository(db),
-				},
 			},
 			args: args{
 				req: &request.CreateShorty{
 					Link:             "www.cenas.pt",
 					TTL:              nil,
 					RedirectionLimit: nil,
+					Labels:           nil,
 				},
 			},
 			want: &entity.Shorty{
@@ -73,6 +60,36 @@ func TestShortyService_Create(t *testing.T) {
 				ShortLink:        "",
 				Visits:           0,
 				RedirectCount:    0,
+				Labels:           nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "create shorty with labels",
+			fields: fields{
+				hostName: "batatas.pt",
+			},
+			args: args{
+				req: &request.CreateShorty{
+					Link:             "www.example.pt",
+					TTL:              nil,
+					RedirectionLimit: nil,
+					Labels:           []string{"marketing", "campaign", "2024"},
+				},
+			},
+			want: &entity.Shorty{
+				ID:               uuid.UUID{},
+				PublicID:         "",
+				Link:             "",
+				TTL:              nil,
+				RedirectionLimit: nil,
+				CreatedAt:        nil,
+				DeletedAt:        nil,
+				ShortyAccesses:   nil,
+				ShortLink:        "",
+				Visits:           0,
+				RedirectCount:    0,
+				Labels:           entity.StringArray{"marketing", "campaign", "2024"},
 			},
 			wantErr: false,
 		},
@@ -80,9 +97,26 @@ func TestShortyService_Create(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
+				mock, db := test.NewMockDB()
+				rows := test.GenerateMockRows(
+					[]string{
+						"created_at",
+					},
+					[][]driver.Value{
+						{
+							time.Now(),
+						},
+					},
+				)
+				req := `INSERT INTO "shorties" ("public_id","link","ttl","redirection_limit","created_at","deleted_at","qr_code","labels") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "id"`
+				mock.ExpectBegin()
+				mock.ExpectQuery(regexp.QuoteMeta(req)).WithArgs().WillReturnRows(rows)
+				mock.ExpectCommit()
+
+				repo := &entity.ShortyRepository{Repository: test.NewMockRepository(db)}
 				s := &ShortyService{
 					hostName:          tt.fields.hostName,
-					shortyRepository:  tt.fields.shortyRepository,
+					shortyRepository:  repo,
 					allowedSocialBots: []string{}, // Empty list for testing
 				}
 				got, err := s.Create(tt.args.req)
@@ -91,6 +125,11 @@ func TestShortyService_Create(t *testing.T) {
 					return
 				}
 				assert.Equal(t, "batatas.pt/s/"+got.PublicID, got.ShortLink)
+				if tt.args.req.Labels != nil {
+					assert.Equal(t, entity.StringArray(tt.args.req.Labels), got.Labels)
+				}
+
+				test.CheckMockDB(t, mock)
 			},
 		)
 	}
@@ -279,3 +318,224 @@ func TestShortyService_IsSocialMediaBot(t *testing.T) {
 		})
 	}
 }
+
+func TestShortyService_ListWithLabels(t *testing.T) {
+	type args struct {
+		withQR bool
+		labels []string
+		limit  int
+		offset int
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "list without labels filter",
+			args: args{
+				withQR: false,
+				labels: nil,
+				limit:  10,
+				offset: 0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "list with single label filter",
+			args: args{
+				withQR: false,
+				labels: []string{"marketing"},
+				limit:  10,
+				offset: 0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "list with multiple labels filter",
+			args: args{
+				withQR: false,
+				labels: []string{"marketing", "tech"},
+				limit:  10,
+				offset: 0,
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mock, db := test.NewMockDB()
+			repo := &entity.ShortyRepository{
+				Repository: test.NewMockRepository(db),
+			}
+
+			mockRows := test.GenerateMockRows(
+				[]string{
+					"id", "created_at", "deleted_at", "public_id", "link",
+					"ttl", "redirection_limit", "labels", "visits", "redirects",
+				},
+				[][]driver.Value{
+					{
+						uuid.New(), time.Now(), nil, "test1", "https://example1.com",
+						nil, nil, "{marketing,promotional}", 10, 8,
+					},
+				},
+			)
+
+			if len(tt.args.labels) > 0 {
+				expectedQuery := `SELECT s.id, s.created_at, s.deleted_at, s.public_id, s.link, s.ttl, s.redirection_limit, s.labels, count(sa.id) as visits, sum(CASE WHEN sa.status = 'redirected' THEN 1 ELSE 0 END) as redirects FROM shorties s 
+    INNER JOIN shorty_accesses sa 
+        ON s.id = sa.shorty_id WHERE s.labels && $1 GROUP BY s.id, s.created_at, s.deleted_at, s.public_id, s.link, s.qr_code, s.ttl, s.redirection_limit, s.labels LIMIT $2 OFFSET $3`
+				labelsArg := formatLabelArray(tt.args.labels)
+				mock.ExpectQuery(regexp.QuoteMeta(expectedQuery)).WithArgs(labelsArg, tt.args.limit, tt.args.offset).WillReturnRows(mockRows)
+			} else {
+				expectedQuery := `SELECT s.id, s.created_at, s.deleted_at, s.public_id, s.link, s.ttl, s.redirection_limit, s.labels, count(sa.id) as visits, sum(CASE WHEN sa.status = 'redirected' THEN 1 ELSE 0 END) as redirects FROM shorties s 
+    INNER JOIN shorty_accesses sa 
+        ON s.id = sa.shorty_id GROUP BY s.id, s.created_at, s.deleted_at, s.public_id, s.link, s.qr_code, s.ttl, s.redirection_limit, s.labels LIMIT $1 OFFSET $2`
+				mock.ExpectQuery(regexp.QuoteMeta(expectedQuery)).WithArgs(tt.args.limit, tt.args.offset).WillReturnRows(mockRows)
+			}
+
+			s := &ShortyService{
+				shortyRepository: repo,
+			}
+
+			got, err := s.List(tt.args.withQR, tt.args.labels, tt.args.limit, tt.args.offset)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			assert.NotNil(t, got)
+			if len(got) > 0 {
+				assert.Equal(t, "test1", got[0].PublicID)
+			}
+
+			test.CheckMockDB(t, mock)
+		})
+	}
+}
+
+func TestShortyService_UpdateWithLabels(t *testing.T) {
+	type args struct {
+		req *request.UpdateShorty
+		m   *entity.Shorty
+	}
+
+	// Mock existing shorty
+	existingShorty := &entity.Shorty{
+		ID:       uuid.New(),
+		PublicID: "test123",
+		Link:     "https://old-link.com",
+		Labels:   entity.StringArray{"old", "label"},
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "update shorty with new labels",
+			args: args{
+				req: &request.UpdateShorty{
+					Labels: []string{"marketing", "campaign", "2024"},
+				},
+				m: existingShorty,
+			},
+			wantErr: false,
+		},
+		{
+			name: "update shorty with empty labels",
+			args: args{
+				req: &request.UpdateShorty{
+					Labels: []string{},
+				},
+				m: existingShorty,
+			},
+			wantErr: false,
+		},
+		{
+			name: "update shorty without changing labels",
+			args: args{
+				req: &request.UpdateShorty{
+					Link: "https://new-link.com",
+				},
+				m: existingShorty,
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mock, db := test.NewMockDB()
+			repo := &entity.ShortyRepository{
+				Repository: test.NewMockRepository(db),
+			}
+
+			// Expect update query
+			mock.ExpectBegin()
+			updateQuery := `UPDATE "shorties" SET "public_id"=$1,"link"=$2,"labels"=$3 WHERE "id" = $4`
+			var expectedLabels interface{}
+			if tt.args.req.Labels != nil {
+				expectedLabels = formatLabelArrayQuoted(tt.args.req.Labels)
+			} else {
+				expectedLabels = formatLabelArrayQuoted(tt.args.m.Labels)
+			}
+			expectedLink := tt.args.m.Link
+			if tt.args.req.Link != "" {
+				expectedLink = tt.args.req.Link
+			}
+			mock.ExpectExec(regexp.QuoteMeta(updateQuery)).
+				WithArgs(tt.args.m.PublicID, expectedLink, expectedLabels, tt.args.m.ID).
+				WillReturnResult(driver.RowsAffected(1))
+			mock.ExpectCommit()
+
+			s := &ShortyService{
+				shortyRepository: repo,
+			}
+
+			// Copy the existing shorty to avoid modifying the original
+			shortyCopy := *tt.args.m
+
+			got, err := s.Update(tt.args.req, &shortyCopy)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			assert.NotNil(t, got)
+
+			// Check if labels were updated correctly
+			if tt.args.req.Labels != nil {
+				assert.Equal(t, entity.StringArray(tt.args.req.Labels), got.Labels)
+			} else {
+				// Labels should remain unchanged
+				assert.Equal(t, tt.args.m.Labels, got.Labels)
+			}
+
+			test.CheckMockDB(t, mock)
+		})
+	}
+}
+
+func formatLabelArray(labels []string) string {
+    if len(labels) == 0 {
+        return "{}"
+    }
+    return fmt.Sprintf("{%s}", strings.Join(labels, ","))
+}
+
+func formatLabelArrayQuoted(labels []string) string {
+    if len(labels) == 0 {
+        return "{}"
+    }
+    quoted := make([]string, len(labels))
+    for i, label := range labels {
+        quoted[i] = fmt.Sprintf("\"%s\"", label)
+    }
+    return fmt.Sprintf("{%s}", strings.Join(quoted, ","))
+}
+

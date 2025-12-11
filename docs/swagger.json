@@ -85,6 +85,12 @@
                         "description": "include qr code",
                         "name": "with_qr",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by labels (comma-separated)",
+                        "name": "labels",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -183,7 +189,7 @@
                     {
                         "type": "boolean",
                         "description": "display accesses column",
-                        "name": "showAccesses",
+                        "name": "show_accesses",
                         "in": "query"
                     }
                 ],
@@ -365,6 +371,12 @@
                 "id": {
                     "type": "string"
                 },
+                "labels": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "link": {
                     "type": "string"
                 },
@@ -422,6 +434,12 @@
             "properties": {
                 "TTL": {
                     "type": "string"
+                },
+                "labels": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "link": {
                     "type": "string"
@@ -484,6 +502,12 @@
                 },
                 "cancel": {
                     "type": "boolean"
+                },
+                "labels": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "link": {
                     "type": "string"

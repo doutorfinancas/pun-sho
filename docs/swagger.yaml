@@ -30,6 +30,10 @@ definitions:
         type: string
       id:
         type: string
+      labels:
+        items:
+          type: string
+        type: array
       link:
         type: string
       qr_code:
@@ -68,6 +72,10 @@ definitions:
     properties:
       TTL:
         type: string
+      labels:
+        items:
+          type: string
+        type: array
       link:
         type: string
       qr_code:
@@ -109,6 +117,10 @@ definitions:
         type: string
       cancel:
         type: boolean
+      labels:
+        items:
+          type: string
+        type: array
       link:
         type: string
       redirection_limit:
@@ -188,6 +200,10 @@ paths:
         in: query
         name: with_qr
         type: boolean
+      - description: filter by labels (comma-separated)
+        in: query
+        name: labels
+        type: string
       produces:
       - application/json
       responses:

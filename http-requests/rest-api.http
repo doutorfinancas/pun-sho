@@ -78,4 +78,67 @@ token: {{token}}
   });
 %}
 
+### Create a short link with labels
+
+POST {{host}}/api/v1/short
+token: {{token}}
+Content-Type: application/json
+
+{
+  "link": "https://example.com/test-with-labels",
+  "labels": ["test", "example", "demo"]
+}
+
+> {%
+  client.test("Status", function() {
+    client.assert(response.status === 201, "Response status is not 201");
+  });
+
+  client.test("Has labels", function() {
+    client.assert(response.body.labels !== undefined, "Response should have labels");
+    client.assert(response.body.labels.length === 3, "Should have 3 labels");
+  });
+%}
+
+### Get list of links filtered by single label
+
+# curl -H 'token: {{token}}' {{host}}/api/v1/short/?labels=marketing
+GET {{host}}/api/v1/short/?limit=20&offset=0&with_qr=false&labels=marketing
+token: {{token}}
+
+> {%
+  client.test("Status", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+  });
+
+  client.test("Filtered by label", function() {
+    client.assert(Array.isArray(response.body), "Response should be an array");
+    if (response.body.length > 0) {
+      client.assert(response.body[0].labels.includes("marketing"), "Should contain marketing label");
+    }
+  });
+%}
+
+### Get list of links filtered by multiple labels
+
+# curl -H 'token: {{token}}' {{host}}/api/v1/short/?labels=programming,social
+GET {{host}}/api/v1/short/?limit=20&offset=0&with_qr=false&labels=programming,social
+token: {{token}}
+
+> {%
+  client.test("Status", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+  });
+
+  client.test("Filtered by multiple labels", function() {
+    client.assert(Array.isArray(response.body), "Response should be an array");
+    if (response.body.length > 0) {
+      const hasLabel = response.body.every(item => 
+        item.labels.some(label => ["programming", "social"].includes(label))
+      );
+      client.assert(hasLabel, "All items should have at least one of the specified labels");
+    }
+  });
+%}
+
 ###

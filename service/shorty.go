@@ -89,6 +89,7 @@ func (s *ShortyService) Create(req *request.CreateShorty) (*entity.Shorty, error
 		Link:             req.Link,
 		TTL:              req.TTL,
 		RedirectionLimit: req.RedirectionLimit,
+		Labels:           req.Labels,
 	}
 
 	m.ShortLink = fmt.Sprintf("%s/s/%s", s.hostName, m.PublicID)
@@ -124,6 +125,10 @@ func (s *ShortyService) Update(req *request.UpdateShorty, m *entity.Shorty) (*en
 
 	if req.RedirectionLimit != nil {
 		m.RedirectionLimit = req.RedirectionLimit
+	}
+
+	if req.Labels != nil {
+		m.Labels = req.Labels
 	}
 
 	if err := s.shortyRepository.Save(m); err != nil {
@@ -184,8 +189,8 @@ func (s *ShortyService) CreateVisit(publicID string, req *request.Redirect) (*en
 	return sh, nil
 }
 
-func (s *ShortyService) List(withQR bool, limit, offset int) ([]*entity.ShortyForList, error) {
-	shorties, err := s.shortyRepository.ListWithAccessData(withQR, limit, offset)
+func (s *ShortyService) List(withQR bool, labels []string, limit, offset int) ([]*entity.ShortyForList, error) {
+	shorties, err := s.shortyRepository.ListWithAccessData(withQR, labels, limit, offset)
 	if err != nil {
 		return nil, err
 	}

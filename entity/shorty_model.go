@@ -19,6 +19,7 @@ type Shorty struct {
 	Visits           int            `json:"visits" gorm:"-"`
 	RedirectCount    int            `json:"redirects" gorm:"-"`
 	QRCode           string         `json:"qr_code,omitempty" gorm:"column:qr_code"`
+	Labels           StringArray `json:"labels,omitempty" gorm:"column:labels;type:text[]"`
 }
 
 func (*Shorty) TableName() string {
@@ -38,4 +39,5 @@ type ShortyForList struct {
 	Visits           int            `json:"visits" gorm:"visits"`
 	Redirects        int            `json:"redirects" gorm:"redirects"`
 	QRCode           string         `json:"qr_code,omitempty" gorm:"column:qr_code"`
+	Labels           StringArray `json:"labels,omitempty" gorm:"column:labels;type:text[]"`
 }
