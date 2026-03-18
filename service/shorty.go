@@ -2,6 +2,8 @@ package service
 
 import (
 	"fmt"
+	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
@@ -13,6 +15,8 @@ import (
 	"github.com/doutorfinancas/pun-sho/entity"
 	"github.com/doutorfinancas/pun-sho/str"
 )
+
+var slugRegex = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 
 const (
 	DefaultPublicIDLength = 10
@@ -53,6 +57,7 @@ type ShortyService struct {
 	shortyRepository       *entity.ShortyRepository
 	shortyAccessRepository *entity.ShortyAccessRepository
 	qrSvc                  *QRCodeService
+	geoSvc                 *GeoIPService
 	publicIDLength         int
 	allowedSocialBots      []string
 }
@@ -83,10 +88,43 @@ func NewShortyService(
 	}
 }
 
+func (s *ShortyService) SetGeoIPService(geoSvc *GeoIPService) {
+	s.geoSvc = geoSvc
+}
+
+func (s *ShortyService) GetHostName() string {
+	return s.hostName
+}
+
 func (s *ShortyService) Create(req *request.CreateShorty) (*entity.Shorty, error) {
+	publicID := str.RandStringRunes(s.publicIDLength)
+
+	if req.Slug != nil && *req.Slug != "" {
+		slug := *req.Slug
+		if len(slug) < 3 {
+			return nil, fmt.Errorf("slug must be at least 3 characters")
+		}
+		if !slugRegex.MatchString(slug) {
+			return nil, fmt.Errorf("slug contains invalid characters")
+		}
+		exists, err := s.shortyRepository.ExistsByPublicID(slug)
+		if err != nil {
+			return nil, err
+		}
+		if exists {
+			return nil, fmt.Errorf("slug already in use")
+		}
+		publicID = slug
+	}
+
+	link := req.Link
+	if req.UTM != nil && !req.UTM.IsEmpty() {
+		link = appendUTMParams(link, req.UTM)
+	}
+
 	m := &entity.Shorty{
-		PublicID:         str.RandStringRunes(s.publicIDLength),
-		Link:             req.Link,
+		PublicID:         publicID,
+		Link:             link,
 		TTL:              req.TTL,
 		RedirectionLimit: req.RedirectionLimit,
 		Labels:           req.Labels,
@@ -107,6 +145,37 @@ func (s *ShortyService) Create(req *request.CreateShorty) (*entity.Shorty, error
 	}
 
 	return m, nil
+}
+
+func appendUTMParams(link string, utm *request.UTMParams) string {
+	u, err := url.Parse(link)
+	if err != nil {
+		return link
+	}
+
+	q := u.Query()
+	if utm.Source != "" {
+		q.Set("utm_source", utm.Source)
+	}
+	if utm.Medium != "" {
+		q.Set("utm_medium", utm.Medium)
+	}
+	if utm.Campaign != "" {
+		q.Set("utm_campaign", utm.Campaign)
+	}
+	if utm.Term != "" {
+		q.Set("utm_term", utm.Term)
+	}
+	if utm.Content != "" {
+		q.Set("utm_content", utm.Content)
+	}
+
+	u.RawQuery = q.Encode()
+	return u.String()
+}
+
+func (s *ShortyService) RegenerateQR(qrReq *request.QRCode, shortLink string) (string, error) {
+	return s.qrSvc.Generate(qrReq, shortLink)
 }
 
 func (s *ShortyService) Update(req *request.UpdateShorty, m *entity.Shorty) (*entity.Shorty, error) {
@@ -149,7 +218,7 @@ func (s *ShortyService) CreateVisit(publicID string, req *request.Redirect) (*en
 		status = StatusDeleted
 	}
 
-	if sh.TTL != nil && sh.TTL.Before(time.Now()) {
+	if sh.TTL != nil && sh.TTL.Year() > 1 && sh.TTL.Before(time.Now()) {
 		status = StatusExpired
 	}
 
@@ -174,6 +243,10 @@ func (s *ShortyService) CreateVisit(publicID string, req *request.Redirect) (*en
 		Browser:         fmt.Sprintf(VersionStringify, ua.Name, ua.Version),
 		OperatingSystem: fmt.Sprintf(VersionStringify, ua.OS, ua.OSVersion),
 		Extra:           req.Extra,
+	}
+
+	if s.geoSvc != nil {
+		m.Country, m.City = s.geoSvc.Lookup(req.IP)
 	}
 
 	m.Meta = m.ConvertMeta(req.Meta)

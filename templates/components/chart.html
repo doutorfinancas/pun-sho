@@ -1,0 +1,37 @@
+{{define "chart"}}
+<canvas id="clicks-canvas" height="300"></canvas>
+<script>
+(function() {
+    const ctx = document.getElementById('clicks-canvas').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [{{range $i, $p := .Points}}{{if $i}},{{end}}"{{$p.Label}}"{{end}}],
+            datasets: [{
+                label: 'Clicks',
+                data: [{{range $i, $p := .Points}}{{if $i}},{{end}}{{$p.Value}}{{end}}],
+                borderColor: '#0099CD',
+                backgroundColor: 'rgba(0, 153, 205, 0.1)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 3,
+                pointHoverRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { precision: 0 }
+                }
+            }
+        }
+    });
+})();
+</script>
+{{end}}

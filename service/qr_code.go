@@ -71,7 +71,9 @@ func (q *QRCodeService) Generate(qr *request.QRCode, link string) (string, error
 		opt.BorderWidth = qr.BorderWidth
 	}
 
-	if qr.LogoImage == "" && q.logo != "" {
+	if qr.LogoImage == "none" {
+		opt.Logo = "" // Explicitly no logo
+	} else if qr.LogoImage == "" && q.logo != "" {
 		x, err := os.ReadFile(q.logo)
 		if err != nil {
 			return "", err
@@ -110,16 +112,13 @@ func (q *QRCodeService) Generate(qr *request.QRCode, link string) (string, error
 
 		if opt.Logo != "" {
 			a, err := base64.StdEncoding.DecodeString(opt.Logo)
-			if err != nil {
-				return "", err
+			if err == nil {
+				img, pngErr := png.Decode(bytes.NewReader(a))
+				if pngErr == nil {
+					stdOpt = append(stdOpt, standard.WithLogoImage(img))
+				}
+				// Skip logo silently if it's not a valid PNG (e.g. SVG logo in PNG output mode)
 			}
-
-			img, err := png.Decode(bytes.NewReader(a))
-			if err != nil {
-				return "", err
-			}
-
-			stdOpt = append(stdOpt, standard.WithLogoImage(img))
 		}
 
 		wr = standard.NewWithWriter(w, stdOpt...)

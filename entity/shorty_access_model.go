@@ -21,6 +21,8 @@ type ShortyAccess struct {
 	OperatingSystem string     `json:"os" gorm:"column:operating_system"`
 	Browser         string     `json:"browser" gorm:"column:browser"`
 	Status          string     `json:"status" gorm:"column:status"`
+	Country         string     `json:"country,omitempty" gorm:"column:country"`
+	City            string     `json:"city,omitempty" gorm:"column:city"`
 }
 
 func (ShortyAccess) TableName() string {

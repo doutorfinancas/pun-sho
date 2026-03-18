@@ -60,8 +60,8 @@ func (r *ShortyRepository) ListWithAccessData(listWithQRCode bool, labels []stri
 	fieldlist := strings.Join(fields, ", ")
 
 	baseQuery := fmt.Sprintf(
-		`SELECT %s, count(sa.id) as visits, sum(CASE WHEN sa.status = 'redirected' THEN 1 ELSE 0 END) as redirects FROM shorties s 
-    INNER JOIN shorty_accesses sa 
+		`SELECT %s, count(sa.id) as visits, COALESCE(sum(CASE WHEN sa.status = 'redirected' THEN 1 ELSE 0 END), 0) as redirects FROM shorties s
+    LEFT JOIN shorty_accesses sa
         ON s.id = sa.shorty_id`, fieldlist)
 
 	var whereClause string
@@ -83,6 +83,17 @@ func (r *ShortyRepository) ListWithAccessData(listWithQRCode bool, labels []stri
 	}
 
 	return rows, nil
+}
+
+func (r *ShortyRepository) ExistsByPublicID(publicID string) (bool, error) {
+	var count int64
+	if err := r.Database.Orm.
+		Model(&Shorty{}).
+		Where("public_id = ?", publicID).
+		Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
 
 func (r *ShortyRepository) Delete(id uuid.UUID) error {

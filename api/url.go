@@ -35,7 +35,7 @@ func (h *urlHandler) Group() *string {
 func (h *urlHandler) RedirectLinkIfExists(c *gin.Context) {
 	slug := c.Param("slug")
 	if slug == "" {
-		c.Redirect(http.StatusMovedPermanently, h.unknownPage)
+		c.Redirect(http.StatusFound, h.unknownPage)
 		return
 	}
 
@@ -55,12 +55,12 @@ func (h *urlHandler) RedirectLinkIfExists(c *gin.Context) {
 
 	sho, err := h.service.CreateVisit(slug, req)
 	if err != nil {
-		c.Redirect(http.StatusMovedPermanently, h.unknownPage)
+		c.Redirect(http.StatusFound, h.unknownPage)
 		return
 	}
 
 	c.Header("Cache-Control", "private, max-age=90")
-	c.Redirect(http.StatusMovedPermanently, sho.Link)
+	c.Redirect(http.StatusFound, sho.Link)
 }
 
 func ReadUserIP(r *http.Request) string {

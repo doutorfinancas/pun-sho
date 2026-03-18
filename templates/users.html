@@ -1,0 +1,113 @@
+{{define "users_content"}}
+<div class="toolbar">
+    <div></div>
+    <button class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#createUserModal">
+        <i class="df-icon-person-add me-1"></i> Create User
+    </button>
+</div>
+
+<div class="df-card p-0">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-4">Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>TOTP</th>
+                    <th>Microsoft</th>
+                    <th>Created</th>
+                    <th class="pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="users-table-body">
+                {{range .Users}}
+                <tr>
+                    <td class="ps-4">{{.Username}}</td>
+                    <td>{{.Email}}</td>
+                    <td><span class="status-badge {{if eq .Role "admin"}}status-info{{else}}status-success{{end}}">{{.Role}}</span></td>
+                    <td>{{if .TOTPEnabled}}<i class="df-icon-check-circle text-success"></i>{{else}}<i class="df-icon-cancel text-gray-500"></i>{{end}}</td>
+                    <td>{{if .MSLinked}}<i class="df-icon-check-circle text-success"></i>{{else}}<i class="df-icon-cancel text-gray-500"></i>{{end}}</td>
+                    <td>{{.CreatedAt.Format "Jan 02, 2006"}}</td>
+                    <td class="pe-4">
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-link" data-bs-toggle="dropdown">
+                                <i class="df-icon-options-2"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <button class="dropdown-item"
+                                            hx-patch="/app/htmx/users/{{.ID}}"
+                                            hx-vals='{"action":"toggle_role"}'
+                                            hx-target="#users-table-body"
+                                            hx-confirm="Change role for {{.Username}}?">
+                                        <i class="df-icon-shield-person me-1"></i> Toggle Role
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item"
+                                            hx-patch="/app/htmx/users/{{.ID}}"
+                                            hx-vals='{"action":"reset_password"}'
+                                            hx-target="#users-table-body"
+                                            hx-confirm="Reset password for {{.Username}}?">
+                                        <i class="df-icon-password me-1"></i> Reset Password
+                                    </button>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <button class="dropdown-item text-danger"
+                                            hx-delete="/app/htmx/users/{{.ID}}"
+                                            hx-target="#users-table-body"
+                                            hx-confirm="Delete user {{.Username}}? This action cannot be undone.">
+                                        <i class="df-icon-delete me-1"></i> Delete
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Create User Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form hx-post="/app/htmx/users" hx-target="#users-table-body" hx-on::after-request="if(event.detail.successful) bootstrap.Modal.getInstance(document.getElementById('createUserModal')).hide()">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="new-username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="new-username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new-email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="new-email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new-password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="new-password" name="password" required minlength="8">
+                    </div>
+                    <div class="mb-3">
+                        <label for="new-role" class="form-label">Role</label>
+                        <select class="form-select" id="new-role" name="role">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{{end}}

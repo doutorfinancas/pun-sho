@@ -1,0 +1,384 @@
+// Script-generated file, do not modify by hand
+
+$df-icon-app-content: "\e982";
+$df-icon-computer-filled-content: "\e983";
+$df-icon-computer-content: "\e984";
+$df-icon-contract-filled-content: "\e985";
+$df-icon-contract-content: "\e986";
+$df-icon-double-check-content: "\e987";
+$df-icon-euribor-assistant-content: "\e988";
+$df-icon-facebook-content: "\e989";
+$df-icon-favourite-filled-content: "\e98a";
+$df-icon-favourite-content: "\e98b";
+$df-icon-file-search-filled-content: "\e98c";
+$df-icon-file-search-content: "\e98d";
+$df-icon-growth-content: "\e98e";
+$df-icon-instagram-content: "\e98f";
+$df-icon-learn-content: "\e990";
+$df-icon-lock-filled-content: "\e991";
+$df-icon-lock-content: "\e992";
+$df-icon-qr-code-content: "\e993";
+$df-icon-raio-x-content: "\e994";
+$df-icon-re-order-content: "\e995";
+$df-icon-reply-content: "\e996";
+$df-icon-reuse-content: "\e997";
+$df-icon-search-check-content: "\e998";
+$df-icon-share-filled-content: "\e999";
+$df-icon-share-content: "\e99a";
+$df-icon-x-twitter-content: "\e99b";
+$df-icon-carteira-poupanca-content: "\e99c";
+$df-icon-documentos-pessoais-content: "\e99d";
+$df-icon-hot-filled-content: "\e99e";
+$df-icon-hot-content: "\e99f";
+$df-icon-outside-content: "\e9a0";
+$df-icon-file-filled-content: "\e9a1";
+$df-icon-file-content: "\e9a2";
+$df-icon-stetoscope-content: "\e9a3";
+$df-icon-stetoscope-filled-content: "\e9a4";
+$df-icon-update-content: "\e9a5";
+$df-icon-car-content: "\e9a6";
+$df-icon-car-filled-content: "\e9a7";
+$df-icon-real-estate-content: "\e9a8";
+$df-icon-health-content: "\e9a9";
+$df-icon-health-filled-content: "\e9aa";
+$df-icon-real-estate-filled-content: "\e9ab";
+$df-icon-pace-content: "\e9ac";
+$df-icon-lens-mistery-content: "\e9ad";
+$df-icon-last-page-content: "\e9ae";
+$df-icon-first-page-content: "\e9af";
+$df-icon-chart-data-content: "\e94c";
+$df-icon-ecg-hearth-content: "\e94d";
+$df-icon-finance-mode-content: "\e95e";
+$df-icon-health-cross-content: "\e95f";
+$df-icon-home-modern-content: "\e973";
+$df-icon-light-mode-content: "\e974";
+$df-icon-search-hands-free-content: "\e975";
+$df-icon-send-love-filled-content: "\e976";
+$df-icon-send-love-content: "\e977";
+$df-icon-lock-open-filled-content: "\e978";
+$df-icon-lock-open-content: "\e979";
+$df-icon-whatsapp-content: "\e97a";
+$df-icon-trophy-content: "\e97b";
+$df-icon-trophy-filled-content: "\e97c";
+$df-icon-person-add-content: "\e97d";
+$df-icon-person-add-filled-content: "\e97e";
+$df-icon-mail-content: "\e97f";
+$df-icon-mail-filled-content: "\e980";
+$df-icon-visibility-off-content: "\e981";
+$df-icon-home-content: "\e900";
+$df-icon-home-filled-content: "\e901";
+$df-icon-savings-content: "\e902";
+$df-icon-savings-filled-content: "\e903";
+$df-icon-person-content: "\e904";
+$df-icon-person-filled-content: "\e905";
+$df-icon-check-circle-content: "\e906";
+$df-icon-check-circle-filled-content: "\e907";
+$df-icon-cancel-content: "\e908";
+$df-icon-cancel-filled-content: "\e909";
+$df-icon-warning-content: "\e90a";
+$df-icon-warning-filled-content: "\e90b";
+$df-icon-info-content: "\e90c";
+$df-icon-info-filled-content: "\e90d";
+$df-icon-notifications-content: "\e90e";
+$df-icon-notifications-filled-content: "\e90f";
+$df-icon-chat-content: "\e910";
+$df-icon-chat-filled-content: "\e911";
+$df-icon-visibility-content: "\e912";
+$df-icon-visibility-filled-content: "\e913";
+$df-icon-delete-content: "\e914";
+$df-icon-delete-filled-content: "\e915";
+$df-icon-settings-content: "\e916";
+$df-icon-settings-filled-content: "\e917";
+$df-icon-paid-content: "\e918";
+$df-icon-paid-filled-content: "\e919";
+$df-icon-lightbulb-content: "\e91a";
+$df-icon-lightbulb-filled-content: "\e91b";
+$df-icon-home-storage-content: "\e91c";
+$df-icon-home-storage-filled-content: "\e91d";
+$df-icon-inventory-content: "\e91e";
+$df-icon-inventory-filled-content: "\e91f";
+$df-icon-safe-content: "\e920";
+$df-icon-safe-filled-content: "\e921";
+$df-icon-shield-person-content: "\e922";
+$df-icon-shield-person-filled-content: "\e923";
+$df-icon-contract-edit-content: "\e924";
+$df-icon-contract-edit-filled-content: "\e925";
+$df-icon-news-content: "\e926";
+$df-icon-news-filled-content: "\e927";
+$df-icon-volume-content: "\e928";
+$df-icon-volume-filled-content: "\e929";
+$df-icon-document-content: "\e92a";
+$df-icon-document-filled-content: "\e92b";
+$df-icon-task-content: "\e92c";
+$df-icon-task-filled-content: "\e92d";
+$df-icon-file-move-content: "\e92e";
+$df-icon-file-move-filled-content: "\e92f";
+$df-icon-call-content: "\e930";
+$df-icon-call-filled-content: "\e931";
+$df-icon-mic-content: "\e932";
+$df-icon-mic-filled-content: "\e933";
+$df-icon-edit-content: "\e934";
+$df-icon-edit-filled-content: "\e935";
+$df-icon-robot-content: "\e936";
+$df-icon-robot-filled-content: "\e937";
+$df-icon-copy-content: "\e938";
+$df-icon-copy-filled-content: "\e939";
+$df-icon-wallet-content: "\e93a";
+$df-icon-wallet-filled-content: "\e93b";
+$df-icon-send-content: "\e93c";
+$df-icon-send-filled-content: "\e93d";
+$df-icon-save-content: "\e93e";
+$df-icon-save-filled-content: "\e93f";
+$df-icon-calendar-content: "\e940";
+$df-icon-calendar-filled-content: "\e941";
+$df-icon-several-content: "\e942";
+$df-icon-several-filled-content: "\e943";
+$df-icon-consolidated-credit-content: "\e944";
+$df-icon-consolidated-credit-filled-content: "\e945";
+$df-icon-dislike-content: "\e946";
+$df-icon-dislike-filled-content: "\e947";
+$df-icon-like-content: "\e948";
+$df-icon-like-filled-content: "\e949";
+$df-icon-savings-2-content: "\e94a";
+$df-icon-savings-2-filled-content: "\e94b";
+$df-icon-folder-content: "\e94e";
+$df-icon-folder-filled-content: "\e94f";
+$df-icon-print-content: "\e950";
+$df-icon-print-filled-content: "\e951";
+$df-icon-star-content: "\e952";
+$df-icon-star-filled-content: "\e953";
+$df-icon-play-content: "\e954";
+$df-icon-play-filled-content: "\e955";
+$df-icon-record-content: "\e956";
+$df-icon-record-filled-content: "\e957";
+$df-icon-reaction-content: "\e958";
+$df-icon-reaction-filled-content: "\e959";
+$df-icon-stop-content: "\e95a";
+$df-icon-stop-filled-content: "\e95b";
+$df-icon-pause-content: "\e95c";
+$df-icon-pause-filled-content: "\e95d";
+$df-icon-add-content: "\e960";
+$df-icon-question-mark-content: "\e961";
+$df-icon-download-content: "\e962";
+$df-icon-arrow-right-content: "\e963";
+$df-icon-arrow-left-content: "\e964";
+$df-icon-arrow-up-content: "\e965";
+$df-icon-close-content: "\e966";
+$df-icon-menu-content: "\e967";
+$df-icon-options-content: "\e968";
+$df-icon-arrow-down-content: "\e969";
+$df-icon-language-content: "\e96a";
+$df-icon-logout-content: "\e96b";
+$df-icon-password-content: "\e96c";
+$df-icon-euro-content: "\e96d";
+$df-icon-check-content: "\e96e";
+$df-icon-options-2-content: "\e96f";
+$df-icon-publish-content: "\e970";
+$df-icon-search-content: "\e971";
+$df-icon-attach-content: "\e972";
+
+@mixin df-icon-classes {
+    .df-icon-app:before { content: $df-icon-app-content; }
+    .df-icon-computer-filled:before { content: $df-icon-computer-filled-content; }
+    .df-icon-computer:before { content: $df-icon-computer-content; }
+    .df-icon-contract-filled:before { content: $df-icon-contract-filled-content; }
+    .df-icon-contract:before { content: $df-icon-contract-content; }
+    .df-icon-double-check:before { content: $df-icon-double-check-content; }
+    .df-icon-euribor-assistant:before { content: $df-icon-euribor-assistant-content; }
+    .df-icon-facebook:before { content: $df-icon-facebook-content; }
+    .df-icon-favourite-filled:before { content: $df-icon-favourite-filled-content; }
+    .df-icon-favourite:before { content: $df-icon-favourite-content; }
+    .df-icon-file-search-filled:before { content: $df-icon-file-search-filled-content; }
+    .df-icon-file-search:before { content: $df-icon-file-search-content; }
+    .df-icon-growth:before { content: $df-icon-growth-content; }
+    .df-icon-instagram:before { content: $df-icon-instagram-content; }
+    .df-icon-learn:before { content: $df-icon-learn-content; }
+    .df-icon-lock-filled:before { content: $df-icon-lock-filled-content; }
+    .df-icon-lock:before { content: $df-icon-lock-content; }
+    .df-icon-qr-code:before { content: $df-icon-qr-code-content; }
+    .df-icon-raio-x:before { content: $df-icon-raio-x-content; }
+    .df-icon-re-order:before { content: $df-icon-re-order-content; }
+    .df-icon-reply:before { content: $df-icon-reply-content; }
+    .df-icon-reuse:before { content: $df-icon-reuse-content; }
+    .df-icon-search-check:before { content: $df-icon-search-check-content; }
+    .df-icon-share-filled:before { content: $df-icon-share-filled-content; }
+    .df-icon-share:before { content: $df-icon-share-content; }
+    .df-icon-x-twitter:before { content: $df-icon-x-twitter-content; }
+    .df-icon-carteira-poupanca:before { content: $df-icon-carteira-poupanca-content; }
+    .df-icon-documentos-pessoais:before { content: $df-icon-documentos-pessoais-content; }
+    .df-icon-hot-filled:before { content: $df-icon-hot-filled-content; }
+    .df-icon-hot:before { content: $df-icon-hot-content; }
+    .df-icon-outside:before { content: $df-icon-outside-content; }
+    .df-icon-file-filled:before { content: $df-icon-file-filled-content; }
+    .df-icon-file:before { content: $df-icon-file-content; }
+    .df-icon-stetoscope:before { content: $df-icon-stetoscope-content; }
+    .df-icon-stetoscope-filled:before { content: $df-icon-stetoscope-filled-content; }
+    .df-icon-update:before { content: $df-icon-update-content; }
+    .df-icon-car:before { content: $df-icon-car-content; }
+    .df-icon-car-filled:before { content: $df-icon-car-filled-content; }
+    .df-icon-real-estate:before { content: $df-icon-real-estate-content; }
+    .df-icon-health:before { content: $df-icon-health-content; }
+    .df-icon-health-filled:before { content: $df-icon-health-filled-content; }
+    .df-icon-real-estate-filled:before { content: $df-icon-real-estate-filled-content; }
+    .df-icon-pace:before { content: $df-icon-pace-content; }
+    .df-icon-lens-mistery:before { content: $df-icon-lens-mistery-content; }
+    .df-icon-last-page:before { content: $df-icon-last-page-content; }
+    .df-icon-first-page:before { content: $df-icon-first-page-content; }
+    .df-icon-chart-data:before { content: $df-icon-chart-data-content; }
+    .df-icon-ecg-hearth:before { content: $df-icon-ecg-hearth-content; }
+    .df-icon-finance-mode:before { content: $df-icon-finance-mode-content; }
+    .df-icon-health-cross:before { content: $df-icon-health-cross-content; }
+    .df-icon-home-modern:before { content: $df-icon-home-modern-content; }
+    .df-icon-light-mode:before { content: $df-icon-light-mode-content; }
+    .df-icon-search-hands-free:before { content: $df-icon-search-hands-free-content; }
+    .df-icon-send-love-filled:before { content: $df-icon-send-love-filled-content; }
+    .df-icon-send-love:before { content: $df-icon-send-love-content; }
+    .df-icon-lock-open-filled:before { content: $df-icon-lock-open-filled-content; }
+    .df-icon-lock-open:before { content: $df-icon-lock-open-content; }
+    .df-icon-whatsapp:before { content: $df-icon-whatsapp-content; }
+    .df-icon-trophy:before { content: $df-icon-trophy-content; }
+    .df-icon-trophy-filled:before { content: $df-icon-trophy-filled-content; }
+    .df-icon-person-add:before { content: $df-icon-person-add-content; }
+    .df-icon-person-add-filled:before { content: $df-icon-person-add-filled-content; }
+    .df-icon-mail:before { content: $df-icon-mail-content; }
+    .df-icon-mail-filled:before { content: $df-icon-mail-filled-content; }
+    .df-icon-visibility-off:before { content: $df-icon-visibility-off-content; }
+    .df-icon-home:before { content: $df-icon-home-content; }
+    .df-icon-home-filled:before { content: $df-icon-home-filled-content; }
+    .df-icon-savings:before { content: $df-icon-savings-content; }
+    .df-icon-savings-filled:before { content: $df-icon-savings-filled-content; }
+    .df-icon-person:before { content: $df-icon-person-content; }
+    .df-icon-person-filled:before { content: $df-icon-person-filled-content; }
+    .df-icon-check-circle:before { content: $df-icon-check-circle-content; }
+    .df-icon-check-circle-filled:before { content: $df-icon-check-circle-filled-content; }
+    .df-icon-cancel:before { content: $df-icon-cancel-content; }
+    .df-icon-cancel-filled:before { content: $df-icon-cancel-filled-content; }
+    .df-icon-warning:before { content: $df-icon-warning-content; }
+    .df-icon-warning-filled:before { content: $df-icon-warning-filled-content; }
+    .df-icon-info:before { content: $df-icon-info-content; }
+    .df-icon-info-filled:before { content: $df-icon-info-filled-content; }
+    .df-icon-notifications:before { content: $df-icon-notifications-content; }
+    .df-icon-notifications-filled:before { content: $df-icon-notifications-filled-content; }
+    .df-icon-chat:before { content: $df-icon-chat-content; }
+    .df-icon-chat-filled:before { content: $df-icon-chat-filled-content; }
+    .df-icon-visibility:before { content: $df-icon-visibility-content; }
+    .df-icon-visibility-filled:before { content: $df-icon-visibility-filled-content; }
+    .df-icon-delete:before { content: $df-icon-delete-content; }
+    .df-icon-delete-filled:before { content: $df-icon-delete-filled-content; }
+    .df-icon-settings:before { content: $df-icon-settings-content; }
+    .df-icon-settings-filled:before { content: $df-icon-settings-filled-content; }
+    .df-icon-paid:before { content: $df-icon-paid-content; }
+    .df-icon-paid-filled:before { content: $df-icon-paid-filled-content; }
+    .df-icon-lightbulb:before { content: $df-icon-lightbulb-content; }
+    .df-icon-lightbulb-filled:before { content: $df-icon-lightbulb-filled-content; }
+    .df-icon-home-storage:before { content: $df-icon-home-storage-content; }
+    .df-icon-home-storage-filled:before { content: $df-icon-home-storage-filled-content; }
+    .df-icon-inventory:before { content: $df-icon-inventory-content; }
+    .df-icon-inventory-filled:before { content: $df-icon-inventory-filled-content; }
+    .df-icon-safe:before { content: $df-icon-safe-content; }
+    .df-icon-safe-filled:before { content: $df-icon-safe-filled-content; }
+    .df-icon-shield-person:before { content: $df-icon-shield-person-content; }
+    .df-icon-shield-person-filled:before { content: $df-icon-shield-person-filled-content; }
+    .df-icon-contract-edit:before { content: $df-icon-contract-edit-content; }
+    .df-icon-contract-edit-filled:before { content: $df-icon-contract-edit-filled-content; }
+    .df-icon-news:before { content: $df-icon-news-content; }
+    .df-icon-news-filled:before { content: $df-icon-news-filled-content; }
+    .df-icon-volume:before { content: $df-icon-volume-content; }
+    .df-icon-volume-filled:before { content: $df-icon-volume-filled-content; }
+    .df-icon-document:before { content: $df-icon-document-content; }
+    .df-icon-document-filled:before { content: $df-icon-document-filled-content; }
+    .df-icon-task:before { content: $df-icon-task-content; }
+    .df-icon-task-filled:before { content: $df-icon-task-filled-content; }
+    .df-icon-file-move:before { content: $df-icon-file-move-content; }
+    .df-icon-file-move-filled:before { content: $df-icon-file-move-filled-content; }
+    .df-icon-call:before { content: $df-icon-call-content; }
+    .df-icon-call-filled:before { content: $df-icon-call-filled-content; }
+    .df-icon-mic:before { content: $df-icon-mic-content; }
+    .df-icon-mic-filled:before { content: $df-icon-mic-filled-content; }
+    .df-icon-edit:before { content: $df-icon-edit-content; }
+    .df-icon-edit-filled:before { content: $df-icon-edit-filled-content; }
+    .df-icon-robot:before { content: $df-icon-robot-content; }
+    .df-icon-robot-filled:before { content: $df-icon-robot-filled-content; }
+    .df-icon-copy:before { content: $df-icon-copy-content; }
+    .df-icon-copy-filled:before { content: $df-icon-copy-filled-content; }
+    .df-icon-wallet:before { content: $df-icon-wallet-content; }
+    .df-icon-wallet-filled:before { content: $df-icon-wallet-filled-content; }
+    .df-icon-send:before { content: $df-icon-send-content; }
+    .df-icon-send-filled:before { content: $df-icon-send-filled-content; }
+    .df-icon-save:before { content: $df-icon-save-content; }
+    .df-icon-save-filled:before { content: $df-icon-save-filled-content; }
+    .df-icon-calendar:before { content: $df-icon-calendar-content; }
+    .df-icon-calendar-filled:before { content: $df-icon-calendar-filled-content; }
+    .df-icon-several:before { content: $df-icon-several-content; }
+    .df-icon-several-filled:before { content: $df-icon-several-filled-content; }
+    .df-icon-consolidated-credit:before { content: $df-icon-consolidated-credit-content; }
+    .df-icon-consolidated-credit-filled:before { content: $df-icon-consolidated-credit-filled-content; }
+    .df-icon-dislike:before { content: $df-icon-dislike-content; }
+    .df-icon-dislike-filled:before { content: $df-icon-dislike-filled-content; }
+    .df-icon-like:before { content: $df-icon-like-content; }
+    .df-icon-like-filled:before { content: $df-icon-like-filled-content; }
+    .df-icon-savings-2:before { content: $df-icon-savings-2-content; }
+    .df-icon-savings-2-filled:before { content: $df-icon-savings-2-filled-content; }
+    .df-icon-folder:before { content: $df-icon-folder-content; }
+    .df-icon-folder-filled:before { content: $df-icon-folder-filled-content; }
+    .df-icon-print:before { content: $df-icon-print-content; }
+    .df-icon-print-filled:before { content: $df-icon-print-filled-content; }
+    .df-icon-star:before { content: $df-icon-star-content; }
+    .df-icon-star-filled:before { content: $df-icon-star-filled-content; }
+    .df-icon-play:before { content: $df-icon-play-content; }
+    .df-icon-play-filled:before { content: $df-icon-play-filled-content; }
+    .df-icon-record:before { content: $df-icon-record-content; }
+    .df-icon-record-filled:before { content: $df-icon-record-filled-content; }
+    .df-icon-reaction:before { content: $df-icon-reaction-content; }
+    .df-icon-reaction-filled:before { content: $df-icon-reaction-filled-content; }
+    .df-icon-stop:before { content: $df-icon-stop-content; }
+    .df-icon-stop-filled:before { content: $df-icon-stop-filled-content; }
+    .df-icon-pause:before { content: $df-icon-pause-content; }
+    .df-icon-pause-filled:before { content: $df-icon-pause-filled-content; }
+    .df-icon-add:before { content: $df-icon-add-content; }
+    .df-icon-question-mark:before { content: $df-icon-question-mark-content; }
+    .df-icon-download:before { content: $df-icon-download-content; }
+    .df-icon-arrow-right:before { content: $df-icon-arrow-right-content; }
+    .df-icon-arrow-left:before { content: $df-icon-arrow-left-content; }
+    .df-icon-arrow-up:before { content: $df-icon-arrow-up-content; }
+    .df-icon-close:before { content: $df-icon-close-content; }
+    .df-icon-menu:before { content: $df-icon-menu-content; }
+    .df-icon-options:before { content: $df-icon-options-content; }
+    .df-icon-arrow-down:before { content: $df-icon-arrow-down-content; }
+    .df-icon-language:before { content: $df-icon-language-content; }
+    .df-icon-logout:before { content: $df-icon-logout-content; }
+    .df-icon-password:before { content: $df-icon-password-content; }
+    .df-icon-euro:before { content: $df-icon-euro-content; }
+    .df-icon-check:before { content: $df-icon-check-content; }
+    .df-icon-options-2:before { content: $df-icon-options-2-content; }
+    .df-icon-publish:before { content: $df-icon-publish-content; }
+    .df-icon-search:before { content: $df-icon-search-content; }
+    .df-icon-attach:before { content: $df-icon-attach-content; }
+}
+
+@font-face {
+  font-family: 'Icons-DF';
+  src:  url('../icons/Icons-DF.eot');
+  src:  url('../icons/Icons-DF.eot#iefix') format('embedded-opentype'),
+  url('../icons/Icons-DF.ttf') format('truetype'),
+  url('../icons/Icons-DF.woff') format('woff'),
+  url('../icons/Icons-DF.svg##Icons-DF') format('svg');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+[class^="df-icon-"], [class*=" df-icon-"] {
+  font-family: 'Icons-DF', sans-serif !important;
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@include df-icon-classes;

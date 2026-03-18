@@ -1,0 +1,55 @@
+{{define "link_row"}}
+<tr>
+    <td class="ps-4">
+        <div class="d-flex align-items-center">
+            <a href="/app/links/{{.ID}}" class="text-decoration-none fw-semibold">{{.ShortLink}}</a>
+            <button class="btn btn-sm btn-link p-0 ms-1 copy-btn" onclick="copyToClipboard('{{.ShortLink}}', this)">
+                <i class="df-icon-copy"></i>
+            </button>
+        </div>
+    </td>
+    <td>
+        <span class="truncate d-inline-block" style="max-width: 300px;" data-bs-toggle="tooltip" title="{{.Link}}">
+            {{.Link}}
+        </span>
+    </td>
+    <td>
+        <span class="fw-semibold">{{.Visits}}</span>
+        <span class="text-gray-500 small">({{.Redirects}} redirects)</span>
+    </td>
+    <td>
+        {{if .DeletedAt}}
+            <span class="status-badge status-error">Deleted</span>
+        {{else if .IsExpired}}
+            <span class="status-badge status-warning">Expired</span>
+        {{else}}
+            <span class="status-badge status-success">Active</span>
+        {{end}}
+    </td>
+    <td>
+        {{range .Labels}}
+        <span class="label-chip">{{.}}</span>
+        {{end}}
+    </td>
+    <td class="small text-gray-600">{{.CreatedAt.Format "Jan 02, 2006"}}</td>
+    <td class="pe-4">
+        <div class="d-flex gap-1">
+            <a href="/app/links/{{.ID}}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="View Details">
+                <i class="df-icon-chart-data"></i>
+            </a>
+            <a href="/app/links/{{.ID}}/edit" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Edit">
+                <i class="df-icon-edit"></i>
+            </a>
+            {{if not .DeletedAt}}
+            <button class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Delete"
+                    hx-delete="/app/htmx/links/{{.ID}}"
+                    hx-target="closest tr"
+                    hx-swap="outerHTML"
+                    hx-confirm="Delete this link?">
+                <i class="df-icon-delete"></i>
+            </button>
+            {{end}}
+        </div>
+    </td>
+</tr>
+{{end}}
