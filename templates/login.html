@@ -36,6 +36,7 @@
                 <button type="submit" class="btn btn-primary w-100">Verify</button>
             </form>
             {{else}}
+            {{if .LocalLoginEnabled}}
             <form method="POST" action="/app/login">
                 <div class="mb-3">
                     <label for="username" class="form-label">Username</label>
@@ -49,13 +50,16 @@
                 </div>
                 <button type="submit" class="btn btn-primary w-100 mb-3">Login</button>
             </form>
+            {{end}}
 
             {{if .MicrosoftEnabled}}
+            {{if .LocalLoginEnabled}}
             <div class="text-center">
                 <div class="position-relative my-3">
                     <hr>
                     <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-gray-500 small">or</span>
                 </div>
+            {{end}}
                 <a href="/app/auth/ms" class="btn btn-outline-secondary w-100">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 21 21" class="me-2">
                         <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
@@ -65,7 +69,9 @@
                     </svg>
                     Sign in with Microsoft
                 </a>
+            {{if .LocalLoginEnabled}}
             </div>
+            {{end}}
             {{end}}
             {{end}}
         </div>

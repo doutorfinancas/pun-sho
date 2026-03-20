@@ -262,13 +262,17 @@ func (s *ShortyService) CreateVisit(publicID string, req *request.Redirect) (*en
 	return sh, nil
 }
 
-func (s *ShortyService) List(withQR bool, labels []string, limit, offset int) ([]*entity.ShortyForList, error) {
-	shorties, err := s.shortyRepository.ListWithAccessData(withQR, labels, limit, offset)
+func (s *ShortyService) List(withQR bool, labels []string, status string, from, to *time.Time, limit, offset int) ([]*entity.ShortyForList, error) {
+	shorties, err := s.shortyRepository.ListWithAccessData(withQR, labels, status, from, to, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 
 	return shorties, nil
+}
+
+func (s *ShortyService) AllLabels() ([]string, error) {
+	return s.shortyRepository.DistinctLabels()
 }
 
 func (s *ShortyService) FindShortyByID(id uuid.UUID, from, until string, showAccesses bool) (*entity.Shorty, error) {

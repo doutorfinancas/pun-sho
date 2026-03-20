@@ -101,6 +101,13 @@ func (h *FrontendHandler) dashboard(c *gin.Context) {
 
 func (h *FrontendHandler) linksList(c *gin.Context) {
 	data := h.baseData(c, "links", "Links")
+
+	availableLabels, err := h.shortySvc.AllLabels()
+	if err != nil {
+		availableLabels = []string{}
+	}
+	data["AvailableLabels"] = availableLabels
+
 	renderTemplate(c, "layout.html", data)
 }
 
@@ -317,7 +324,7 @@ func (h *FrontendHandler) htmxDashboardLabels(c *gin.Context) {
 }
 
 func (h *FrontendHandler) htmxDashboardRecent(c *gin.Context) {
-	links, err := h.shortySvc.List(false, nil, 5, 0)
+	links, err := h.shortySvc.List(false, nil, "", nil, nil, 5, 0)
 	if err != nil {
 		c.String(http.StatusOK, `<p class="text-gray-500 text-center">No links found</p>`)
 		return
@@ -339,10 +346,23 @@ func (h *FrontendHandler) htmxDashboardRecent(c *gin.Context) {
 }
 
 func (h *FrontendHandler) htmxLinksList(c *gin.Context) {
-	search := c.Query("search")
-	_ = search // TODO: implement search filtering in repository
+	labels := c.QueryArray("labels")
+	status := c.Query("status")
 
-	links, err := h.shortySvc.List(false, nil, 50, 0)
+	var from, to *time.Time
+	if fromStr := c.Query("from"); fromStr != "" {
+		if t, err := time.Parse("2006-01-02", fromStr); err == nil {
+			from = &t
+		}
+	}
+	if toStr := c.Query("to"); toStr != "" {
+		if t, err := time.Parse("2006-01-02", toStr); err == nil {
+			end := t.Add(24*time.Hour - time.Second)
+			to = &end
+		}
+	}
+
+	links, err := h.shortySvc.List(false, labels, status, from, to, 50, 0)
 	if err != nil {
 		c.String(http.StatusOK, `<tr><td colspan="7" class="text-center text-gray-500">Error loading links</td></tr>`)
 		return

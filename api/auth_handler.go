@@ -15,23 +15,26 @@ import (
 )
 
 type AuthHandler struct {
-	log            *zap.Logger
-	authSvc        *service.AuthService
-	cookieDomain   string
-	msOAuthConfig  *oauth2.Config
-	msOIDCVerifier *oidc.IDTokenVerifier
-	allowedGroups  []string
+	log               *zap.Logger
+	authSvc           *service.AuthService
+	cookieDomain      string
+	localLoginEnabled bool
+	msOAuthConfig     *oauth2.Config
+	msOIDCVerifier    *oidc.IDTokenVerifier
+	allowedGroups     []string
 }
 
 func NewAuthHandler(
 	log *zap.Logger,
 	authSvc *service.AuthService,
 	cookieDomain string,
+	disableLocalLogin bool,
 ) *AuthHandler {
 	return &AuthHandler{
-		log:          log,
-		authSvc:      authSvc,
-		cookieDomain: cookieDomain,
+		log:               log,
+		authSvc:           authSvc,
+		cookieDomain:      cookieDomain,
+		localLoginEnabled: !disableLocalLogin,
 	}
 }
 
@@ -60,11 +63,21 @@ func (h *AuthHandler) ConfigureMicrosoftOAuth(tenantID, clientID, clientSecret s
 	h.log.Info("Microsoft OAuth configured", zap.String("tenant", tenantID))
 }
 
+func (h *AuthHandler) Validate() {
+	if !h.localLoginEnabled && h.msOAuthConfig == nil {
+		h.log.Warn("DISABLE_LOCAL_LOGIN is set but Microsoft OAuth is not configured, re-enabling local login")
+		h.localLoginEnabled = true
+	}
+}
+
 func (h *AuthHandler) Routes(rg *gin.RouterGroup) {
 	rg.GET("/login", h.loginPage)
-	rg.POST("/login", h.loginAction)
-	rg.POST("/login/totp", h.totpVerify)
 	rg.POST("/logout", h.logout)
+
+	if h.localLoginEnabled {
+		rg.POST("/login", h.loginAction)
+		rg.POST("/login/totp", h.totpVerify)
+	}
 
 	if h.msOAuthConfig != nil {
 		rg.GET("/auth/ms", h.msRedirect)
@@ -77,8 +90,17 @@ func (h *AuthHandler) Group() *string {
 }
 
 func (h *AuthHandler) loginPage(c *gin.Context) {
+	msEnabled := h.msOAuthConfig != nil
+
+	// If local login is disabled and MS is enabled, redirect directly to MS
+	if !h.localLoginEnabled && msEnabled && c.Query("error") == "" {
+		h.msRedirect(c)
+		return
+	}
+
 	data := gin.H{
-		"MicrosoftEnabled": h.msOAuthConfig != nil,
+		"MicrosoftEnabled":  msEnabled,
+		"LocalLoginEnabled": h.localLoginEnabled,
 	}
 
 	if errMsg := c.Query("error"); errMsg != "" {
@@ -114,6 +136,7 @@ func (h *AuthHandler) loginAction(c *gin.Context) {
 			"TOTPRequired":     true,
 			"PendingToken":     session.Token,
 			"MicrosoftEnabled": h.msOAuthConfig != nil,
+			"LocalLoginEnabled": h.localLoginEnabled,
 		}
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		renderTemplate(c, "login.html", data)

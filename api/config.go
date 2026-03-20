@@ -27,6 +27,9 @@ type Config struct {
 	CookieDomain           string `env:"COOKIE_DOMAIN"`
 	SessionDuration        string `env:"SESSION_DURATION"`
 
+	// Login config
+	DisableLocalLogin      bool   `env:"DISABLE_LOCAL_LOGIN"`
+
 	// Microsoft OAuth config
 	MicrosoftTenantID      string `env:"MICROSOFT_TENANT_ID"`
 	MicrosoftClientID      string `env:"MICROSOFT_CLIENT_ID"`

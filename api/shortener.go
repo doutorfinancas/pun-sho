@@ -113,7 +113,7 @@ func (h *shortenerHandler) ListLinks(c *gin.Context) {
 
 	labels := parseLabelsParam(labelsStr)
 
-	links, err := h.shortySvc.List(withQR, labels, limit, offset)
+	links, err := h.shortySvc.List(withQR, labels, "", nil, nil, limit, offset)
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,

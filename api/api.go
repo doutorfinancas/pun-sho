@@ -73,7 +73,7 @@ func (a *API) Run() {
 	sessionMiddleware := NewSessionMiddleware(a.authSvc)
 
 	// Auth handler (login/logout — no session required)
-	authHandler := NewAuthHandler(a.log, a.authSvc, a.config.CookieDomain)
+	authHandler := NewAuthHandler(a.log, a.authSvc, a.config.CookieDomain, a.config.DisableLocalLogin)
 	if a.config.MicrosoftTenantID != "" {
 		authHandler.ConfigureMicrosoftOAuth(
 			a.config.MicrosoftTenantID,
@@ -82,6 +82,7 @@ func (a *API) Run() {
 			a.config.GetMicrosoftAllowedGroups(),
 		)
 	}
+	authHandler.Validate()
 	a.PushHandlerWithGroup(authHandler, appGroup)
 
 	// Protected app routes (session required)
