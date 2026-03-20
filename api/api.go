@@ -53,7 +53,9 @@ func (a *API) Run() {
 	)
 
 	// Load templates
-	LoadTemplates(a.log)
+	if _, err := LoadTemplates(a.log); err != nil {
+		a.log.Fatal("Failed to load templates", zap.Error(err))
+	}
 
 	// Static file serving
 	g.Static("/static", "./static")

@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"io"
 	htmlpkg "html"
 	"net/http"
 	"strconv"
@@ -168,7 +169,7 @@ func (h *FrontendHandler) linksCreate(c *gin.Context) {
 
 	// Parse TTL — only set if non-empty
 	if ttlStr := c.PostForm("ttl"); ttlStr != "" {
-		t, err := time.Parse("2006-01-02T15:04", ttlStr)
+		t, err := time.ParseInLocation("2006-01-02T15:04", ttlStr, time.Local)
 		if err == nil {
 			req.TTL = &t
 		}
@@ -234,7 +235,7 @@ func (h *FrontendHandler) linksUpdate(c *gin.Context) {
 	}
 
 	if ttlStr := c.PostForm("ttl"); ttlStr != "" {
-		t, parseErr := time.Parse("2006-01-02T15:04", ttlStr)
+		t, parseErr := time.ParseInLocation("2006-01-02T15:04", ttlStr, time.Local)
 		if parseErr == nil {
 			req.TTL = &t
 		}
@@ -246,7 +247,19 @@ func (h *FrontendHandler) linksUpdate(c *gin.Context) {
 		}
 	}
 
-	// Handle QR code regeneration
+	// Parse UTM from form fields
+	utm := &request.UTMParams{
+		Source:   c.PostForm("utm_source"),
+		Medium:   c.PostForm("utm_medium"),
+		Campaign: c.PostForm("utm_campaign"),
+		Term:     c.PostForm("utm_term"),
+		Content:  c.PostForm("utm_content"),
+	}
+	if !utm.IsEmpty() {
+		req.UTM = utm
+	}
+
+	// Handle QR code
 	if c.PostForm("enable_qr") == "on" {
 		qrReq := buildQRRequest(c)
 		shortLink := fmt.Sprintf("%s/s/%s", h.hostName, link.PublicID)
@@ -254,6 +267,8 @@ func (h *FrontendHandler) linksUpdate(c *gin.Context) {
 		if qrErr == nil {
 			link.QRCode = qrCode
 		}
+	} else if link.QRCode != "" {
+		link.QRCode = ""
 	}
 
 	_, err = h.shortySvc.Update(&req, link)
@@ -739,8 +754,8 @@ func buildQRRequest(c *gin.Context) *request.QRCode {
 			if header.Size > maxLogoBytes {
 				return qr
 			}
-			logoBytes := make([]byte, header.Size)
-			if _, readErr := file.Read(logoBytes); readErr == nil {
+			logoBytes, readErr := io.ReadAll(file)
+			if readErr == nil && len(logoBytes) > 0 {
 				qr.LogoImage = base64.StdEncoding.EncodeToString(logoBytes)
 			}
 		}

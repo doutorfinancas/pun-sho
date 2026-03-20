@@ -58,7 +58,7 @@
                             <span class="label-chip">
                                 <span x-text="label"></span>
                                 <input type="hidden" name="labels" :value="label">
-                                <i class="df-icon-close remove-label" @click="removeLabel(index)"></i>
+                                <button type="button" class="btn-close btn-close-sm ms-1" aria-label="Remove label" @click="removeLabel(index)" style="font-size: 0.5rem;"></button>
                             </span>
                         </template>
                         <input type="text" class="border-0 flex-grow-1" style="outline: none; min-width: 100px;"
@@ -106,6 +106,7 @@
                         <label class="form-check-label fw-semibold" for="enable_qr">Generate QR Code</label>
                     </div>
                     <div id="qr-options" class="border rounded p-3 bg-gray-50 {{if not .Link}}d-none{{else}}{{if not .Link.QRCode}}d-none{{end}}{{end}}">
+                        <!-- Note: QR settings are not stored separately; regeneration uses fresh values -->
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <label class="form-label small fw-semibold">Format</label>

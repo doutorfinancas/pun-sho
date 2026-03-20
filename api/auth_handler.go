@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"net/http"
+	"time"
 
 	"github.com/coreos/go-oidc"
 	"github.com/gin-gonic/gin"
@@ -52,7 +53,8 @@ func (h *AuthHandler) ConfigureMicrosoftOAuth(tenantID, clientID, clientSecret s
 		return
 	}
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	provider, err := oidc.NewProvider(ctx, "https://login.microsoftonline.com/"+tenantID+"/v2.0")
 	if err != nil {
 		h.log.Error("Failed to initialize MS OIDC provider", zap.Error(err))
@@ -134,8 +136,8 @@ func (h *AuthHandler) loginAction(c *gin.Context) {
 	}
 
 	if user.TOTPEnabled {
-		// Create a pending session token for TOTP verification
-		session, err := h.authSvc.CreateSession(user.ID)
+		// Create an unverified session for TOTP verification
+		session, err := h.authSvc.CreatePendingSession(user.ID)
 		if err != nil {
 			c.Redirect(http.StatusFound, "/app/login?error=Session+error")
 			return
@@ -162,7 +164,7 @@ func (h *AuthHandler) totpVerify(c *gin.Context) {
 		return
 	}
 
-	user, err := h.authSvc.ValidateSession(req.SessionToken)
+	user, err := h.authSvc.ValidatePendingSession(req.SessionToken)
 	if err != nil {
 		c.Redirect(http.StatusFound, "/app/login?error=Session+expired")
 		return
@@ -174,7 +176,11 @@ func (h *AuthHandler) totpVerify(c *gin.Context) {
 		return
 	}
 
-	// TOTP valid — set the cookie with the existing session token
+	// TOTP valid — mark session as verified and set the cookie
+	if err := h.authSvc.VerifySession(req.SessionToken); err != nil {
+		c.Redirect(http.StatusFound, "/app/login?error=Session+error")
+		return
+	}
 	c.SetCookie(SessionCookieName, req.SessionToken, h.sessionMaxAge, "/", h.cookieDomain, isSecure(c), true)
 	c.Redirect(http.StatusFound, "/app/")
 }

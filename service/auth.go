@@ -80,6 +80,14 @@ func (s *AuthService) RegisterTOTP(user *entity.User) (string, string, error) {
 }
 
 func (s *AuthService) CreateSession(userID uuid.UUID) (*entity.Session, error) {
+	return s.createSession(userID, true)
+}
+
+func (s *AuthService) CreatePendingSession(userID uuid.UUID) (*entity.Session, error) {
+	return s.createSession(userID, false)
+}
+
+func (s *AuthService) createSession(userID uuid.UUID, verified bool) (*entity.Session, error) {
 	tokenBytes := make([]byte, 32)
 	if _, err := rand.Read(tokenBytes); err != nil {
 		return nil, err
@@ -88,6 +96,7 @@ func (s *AuthService) CreateSession(userID uuid.UUID) (*entity.Session, error) {
 	session := &entity.Session{
 		UserID:    userID,
 		Token:     hex.EncodeToString(tokenBytes),
+		Verified:  verified,
 		ExpiresAt: time.Now().Add(s.sessionDuration),
 	}
 
@@ -98,10 +107,38 @@ func (s *AuthService) CreateSession(userID uuid.UUID) (*entity.Session, error) {
 	return session, nil
 }
 
+func (s *AuthService) ValidatePendingSession(token string) (*entity.User, error) {
+	session, err := s.sessionRepo.FindByToken(token)
+	if err != nil {
+		return nil, errors.New("invalid session")
+	}
+
+	user, err := s.userRepo.FindByID(session.UserID)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	return user, nil
+}
+
+func (s *AuthService) VerifySession(token string) error {
+	session, err := s.sessionRepo.FindByToken(token)
+	if err != nil {
+		return errors.New("invalid session")
+	}
+
+	session.Verified = true
+	return s.sessionRepo.Database.Save(session)
+}
+
 func (s *AuthService) ValidateSession(token string) (*entity.User, error) {
 	session, err := s.sessionRepo.FindByToken(token)
 	if err != nil {
 		return nil, errors.New("invalid session")
+	}
+
+	if !session.Verified {
+		return nil, errors.New("session not verified")
 	}
 
 	user, err := s.userRepo.FindByID(session.UserID)

@@ -180,7 +180,11 @@ func (s *ShortyService) RegenerateQR(qrReq *request.QRCode, shortLink string) (s
 
 func (s *ShortyService) Update(req *request.UpdateShorty, m *entity.Shorty) (*entity.Shorty, error) {
 	if req.Link != "" {
-		m.Link = req.Link
+		link := req.Link
+		if req.UTM != nil && !req.UTM.IsEmpty() {
+			link = appendUTMParams(link, req.UTM)
+		}
+		m.Link = link
 	}
 
 	if req.Cancel {

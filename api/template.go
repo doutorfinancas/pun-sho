@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"net/http"
 	"path/filepath"
@@ -15,7 +16,7 @@ var templateLogger *zap.Logger
 
 var templates *template.Template
 
-func LoadTemplates(log *zap.Logger) *template.Template {
+func LoadTemplates(log *zap.Logger) (*template.Template, error) {
 	templateLogger = log
 
 	funcMap := template.FuncMap{
@@ -85,6 +86,7 @@ func LoadTemplates(log *zap.Logger) *template.Template {
 
 	tmpl := template.New("").Funcs(funcMap)
 
+	totalParsed := 0
 	for _, pattern := range patterns {
 		matches, err := filepath.Glob(pattern)
 		if err != nil {
@@ -94,13 +96,18 @@ func LoadTemplates(log *zap.Logger) *template.Template {
 		for _, match := range matches {
 			_, err := tmpl.ParseFiles(match)
 			if err != nil {
-				log.Warn("Failed to parse template", zap.String("file", match), zap.Error(err))
+				return nil, fmt.Errorf("failed to parse template %s: %w", match, err)
 			}
+			totalParsed++
 		}
 	}
 
+	if totalParsed == 0 {
+		return nil, fmt.Errorf("no templates found in templates/ directory")
+	}
+
 	templates = tmpl
-	return tmpl
+	return tmpl, nil
 }
 
 func renderTemplate(c *gin.Context, name string, data interface{}) {

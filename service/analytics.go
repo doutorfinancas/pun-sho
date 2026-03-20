@@ -74,7 +74,9 @@ func (s *AnalyticsService) ClicksOverTime(shortyID *uuid.UUID, from, until time.
 	query += " GROUP BY label ORDER BY label"
 
 	var points []TimeseriesPoint
-	s.db.Orm.Raw(query, args...).Scan(&points)
+	if err := s.db.Orm.Raw(query, args...).Scan(&points).Error; err != nil {
+		s.log.Error("ClicksOverTime query failed", zap.Error(err))
+	}
 	if points == nil {
 		points = []TimeseriesPoint{}
 	}
@@ -100,7 +102,9 @@ func (s *AnalyticsService) BrowserBreakdown(shortyID *uuid.UUID, from, until tim
 
 	query += " GROUP BY browser ORDER BY count DESC LIMIT 10"
 
-	s.db.Orm.Raw(query, args...).Scan(&items)
+	if err := s.db.Orm.Raw(query, args...).Scan(&items).Error; err != nil {
+		s.log.Error("Analytics query failed", zap.Error(err))
+	}
 	if items == nil {
 		items = []BreakdownItem{}
 	}
@@ -126,7 +130,9 @@ func (s *AnalyticsService) OSBreakdown(shortyID *uuid.UUID, from, until time.Tim
 
 	query += " GROUP BY operating_system ORDER BY count DESC LIMIT 10"
 
-	s.db.Orm.Raw(query, args...).Scan(&items)
+	if err := s.db.Orm.Raw(query, args...).Scan(&items).Error; err != nil {
+		s.log.Error("Analytics query failed", zap.Error(err))
+	}
 	if items == nil {
 		items = []BreakdownItem{}
 	}
@@ -160,7 +166,9 @@ func (s *AnalyticsService) TopReferrers(shortyID *uuid.UUID, from, until time.Ti
 	query += " GROUP BY name ORDER BY count DESC LIMIT ?"
 	args = append(args, limit)
 
-	s.db.Orm.Raw(query, args...).Scan(&items)
+	if err := s.db.Orm.Raw(query, args...).Scan(&items).Error; err != nil {
+		s.log.Error("Analytics query failed", zap.Error(err))
+	}
 	if items == nil {
 		items = []BreakdownItem{}
 	}
@@ -191,7 +199,9 @@ func (s *AnalyticsService) LocationBreakdown(shortyID *uuid.UUID, from, until ti
 	query += " GROUP BY country, city ORDER BY count DESC LIMIT ?"
 	args = append(args, limit)
 
-	s.db.Orm.Raw(query, args...).Scan(&items)
+	if err := s.db.Orm.Raw(query, args...).Scan(&items).Error; err != nil {
+		s.log.Error("LocationBreakdown query failed", zap.Error(err))
+	}
 	if items == nil {
 		items = []LocationItem{}
 	}
@@ -206,7 +216,7 @@ func (s *AnalyticsService) LabelRanking(from, until time.Time, limit int) []Labe
 
 	var items []LabelRankItem
 
-	s.db.Orm.Raw(`
+	if err := s.db.Orm.Raw(`
 		SELECT unnest(s.labels) as label, COUNT(sa.id) as count
 		FROM shorties s
 		INNER JOIN shorty_accesses sa ON s.id = sa.shorty_id
@@ -215,7 +225,9 @@ func (s *AnalyticsService) LabelRanking(from, until time.Time, limit int) []Labe
 		AND s.labels IS NOT NULL
 		GROUP BY label
 		ORDER BY count DESC
-		LIMIT ?`, from, until, limit).Scan(&items)
+		LIMIT ?`, from, until, limit).Scan(&items).Error; err != nil {
+		s.log.Error("LabelRanking query failed", zap.Error(err))
+	}
 
 	if items == nil {
 		items = []LabelRankItem{}
@@ -227,22 +239,30 @@ func (s *AnalyticsService) LabelRanking(from, until time.Time, limit int) []Labe
 func (s *AnalyticsService) GlobalSummary(from, until time.Time) GlobalStats {
 	var stats GlobalStats
 
-	s.db.Orm.Raw(`SELECT COUNT(*) FROM shorties WHERE deleted_at IS NULL`).Scan(&stats.TotalLinks)
+	if err := s.db.Orm.Raw(`SELECT COUNT(*) FROM shorties WHERE deleted_at IS NULL`).Scan(&stats.TotalLinks).Error; err != nil {
+		s.log.Error("GlobalSummary TotalLinks query failed", zap.Error(err))
+	}
 
-	s.db.Orm.Raw(`
+	if err := s.db.Orm.Raw(`
 		SELECT COUNT(*) FROM shorty_accesses
 		WHERE created_at BETWEEN ? AND ?
-		AND status = 'redirected'`, from, until).Scan(&stats.TotalClicks)
+		AND status = 'redirected'`, from, until).Scan(&stats.TotalClicks).Error; err != nil {
+		s.log.Error("GlobalSummary TotalClicks query failed", zap.Error(err))
+	}
 
-	s.db.Orm.Raw(`
+	if err := s.db.Orm.Raw(`
 		SELECT COUNT(*) FROM shorties
 		WHERE deleted_at IS NULL
-		AND (ttl IS NULL OR ttl > NOW())`).Scan(&stats.ActiveLinks)
+		AND (ttl IS NULL OR ttl > NOW())`).Scan(&stats.ActiveLinks).Error; err != nil {
+		s.log.Error("GlobalSummary ActiveLinks query failed", zap.Error(err))
+	}
 
-	s.db.Orm.Raw(`
+	if err := s.db.Orm.Raw(`
 		SELECT COUNT(*) FROM shorties
 		WHERE deleted_at IS NULL
-		AND ttl IS NOT NULL AND ttl <= NOW()`).Scan(&stats.ExpiredLinks)
+		AND ttl IS NOT NULL AND ttl <= NOW()`).Scan(&stats.ExpiredLinks).Error; err != nil {
+		s.log.Error("GlobalSummary ExpiredLinks query failed", zap.Error(err))
+	}
 
 	return stats
 }
