@@ -26,12 +26,12 @@
                     <td class="ps-4">{{.Username}}</td>
                     <td>{{.Email}}</td>
                     <td><span class="status-badge {{if eq .Role "admin"}}status-info{{else}}status-success{{end}}">{{.Role}}</span></td>
-                    <td>{{if .TOTPEnabled}}<i class="df-icon-check-circle text-success"></i>{{else}}<i class="df-icon-cancel text-gray-500"></i>{{end}}</td>
-                    <td>{{if .MSLinked}}<i class="df-icon-check-circle text-success"></i>{{else}}<i class="df-icon-cancel text-gray-500"></i>{{end}}</td>
+                    <td>{{if .TOTPEnabled}}<i class="df-icon-check-circle text-success"></i> <span class="visually-hidden">Enabled</span>{{else}}<i class="df-icon-cancel text-gray-500"></i> <span class="visually-hidden">Disabled</span>{{end}}</td>
+                    <td>{{if .MSLinked}}<i class="df-icon-check-circle text-success"></i> <span class="visually-hidden">Linked</span>{{else}}<i class="df-icon-cancel text-gray-500"></i> <span class="visually-hidden">Not linked</span>{{end}}</td>
                     <td>{{formatDate .CreatedAt}}</td>
                     <td class="pe-4">
                         <div class="dropdown">
-                            <button class="btn btn-sm btn-link" data-bs-toggle="dropdown">
+                            <button class="btn btn-sm btn-link" data-bs-toggle="dropdown" aria-label="Actions for {{.Username}}">
                                 <i class="df-icon-options-2"></i>
                             </button>
                             <ul class="dropdown-menu">
@@ -73,12 +73,12 @@
 </div>
 
 <!-- Create User Modal -->
-<div class="modal fade" id="createUserModal" tabindex="-1">
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Create User</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title" id="createUserModalLabel">Create User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form hx-post="/app/htmx/users" hx-target="#users-table-body" hx-on::after-request="if(event.detail.successful) bootstrap.Modal.getInstance(document.getElementById('createUserModal')).hide()">
                 <div class="modal-body">

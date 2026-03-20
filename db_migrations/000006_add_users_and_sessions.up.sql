@@ -8,7 +8,7 @@ CREATE TABLE users (
     totp_secret VARCHAR(255),
     totp_enabled BOOLEAN DEFAULT FALSE,
     ms_linked BOOLEAN DEFAULT FALSE,
-    ms_email VARCHAR(255),
+    ms_email VARCHAR(255) UNIQUE,
     role VARCHAR(50) NOT NULL DEFAULT 'user',
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
@@ -23,7 +23,7 @@ CREATE TABLE sessions (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX idx_sessions_token ON sessions(token);
+CREATE UNIQUE INDEX idx_sessions_token ON sessions(token);
 CREATE INDEX idx_sessions_user_id ON sessions(user_id);
 CREATE INDEX idx_sessions_expires_at ON sessions(expires_at);
 CREATE INDEX idx_users_username ON users(username);

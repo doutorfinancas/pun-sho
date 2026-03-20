@@ -620,6 +620,7 @@ func (h *FrontendHandler) htmxUpdateUser(c *gin.Context) {
 	}
 
 	action := c.PostForm("action")
+	toastMsg := "User updated successfully"
 	switch action {
 	case "toggle_role":
 		_, err = h.authSvc.ToggleRole(id)
@@ -627,7 +628,7 @@ func (h *FrontendHandler) htmxUpdateUser(c *gin.Context) {
 		newPass := generateRandomPassword()
 		err = h.authSvc.ResetPassword(id, newPass)
 		if err == nil {
-			c.Header("HX-Toast-Success", fmt.Sprintf("Password reset to: %s", newPass))
+			toastMsg = fmt.Sprintf("Password reset to: %s", newPass)
 		}
 	}
 
@@ -636,7 +637,7 @@ func (h *FrontendHandler) htmxUpdateUser(c *gin.Context) {
 		return
 	}
 
-	c.Header("HX-Toast-Success", "User updated successfully")
+	c.Header("HX-Toast-Success", toastMsg)
 	h.renderUsersTableBody(c)
 }
 
