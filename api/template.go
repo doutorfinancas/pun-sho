@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"html/template"
 	"net/http"
 	"path/filepath"
@@ -10,10 +11,18 @@ import (
 	"go.uber.org/zap"
 )
 
+var templateLogger *zap.Logger
+
 var templates *template.Template
 
 func LoadTemplates(log *zap.Logger) *template.Template {
+	templateLogger = log
+
 	funcMap := template.FuncMap{
+		"json": func(v interface{}) template.JS {
+			b, _ := json.Marshal(v)
+			return template.JS(b)
+		},
 		"safeURL": func(s string) template.URL {
 			return template.URL(s)
 		},
@@ -102,6 +111,9 @@ func renderTemplate(c *gin.Context, name string, data interface{}) {
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	if err := templates.ExecuteTemplate(c.Writer, name, data); err != nil {
-		c.String(http.StatusInternalServerError, "Template error: %s", err.Error())
+		if templateLogger != nil {
+			templateLogger.Error("Template execution error", zap.String("template", name), zap.Error(err))
+		}
+		c.String(http.StatusInternalServerError, "Internal server error")
 	}
 }

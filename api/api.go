@@ -73,7 +73,7 @@ func (a *API) Run() {
 	sessionMiddleware := NewSessionMiddleware(a.authSvc)
 
 	// Auth handler (login/logout — no session required)
-	authHandler := NewAuthHandler(a.log, a.authSvc, a.config.CookieDomain, a.config.DisableLocalLogin)
+	authHandler := NewAuthHandler(a.log, a.authSvc, a.config.CookieDomain, a.config.DisableLocalLogin, int(a.config.GetSessionDuration().Seconds()))
 	if a.config.MicrosoftTenantID != "" {
 		authHandler.ConfigureMicrosoftOAuth(
 			a.config.MicrosoftTenantID,

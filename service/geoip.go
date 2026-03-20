@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/oschwald/geoip2-golang"
 	"go.uber.org/zap"
@@ -67,7 +68,8 @@ func NewGeoIPService(log *zap.Logger, dbPath, licenseKey string) *GeoIPService {
 func downloadGeoIPDB(destPath, licenseKey string) error {
 	url := fmt.Sprintf(maxMindDownloadURL, licenseKey)
 
-	resp, err := http.Get(url) //nolint:gosec // URL is constructed from a constant + config value
+	client := &http.Client{Timeout: 60 * time.Second}
+	resp, err := client.Get(url) //nolint:gosec // URL is constructed from a constant + config value
 	if err != nil {
 		return fmt.Errorf("download request failed: %w", err)
 	}
@@ -115,6 +117,7 @@ func downloadGeoIPDB(destPath, licenseKey string) error {
 
 		if _, err := io.Copy(out, tr); err != nil {
 			out.Close()
+			os.Remove(destPath)
 			return fmt.Errorf("failed to write file: %w", err)
 		}
 		out.Close()

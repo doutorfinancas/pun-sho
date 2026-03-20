@@ -3,7 +3,7 @@
     <td class="ps-4">
         <div class="d-flex align-items-center">
             <a href="/app/links/{{.ID}}" class="text-decoration-none fw-semibold">{{.ShortLink}}</a>
-            <button class="btn btn-sm btn-link p-0 ms-1 copy-btn" onclick="copyToClipboard('{{.ShortLink}}', this)">
+            <button class="btn btn-sm btn-link p-0 ms-1 copy-btn" aria-label="Copy link" onclick="copyToClipboard('{{.ShortLink}}', this)">
                 <i class="df-icon-copy"></i>
             </button>
         </div>
@@ -34,14 +34,14 @@
     <td class="small text-gray-600">{{.CreatedAt.Format "Jan 02, 2006"}}</td>
     <td class="pe-4">
         <div class="d-flex gap-1">
-            <a href="/app/links/{{.ID}}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="View Details">
+            <a href="/app/links/{{.ID}}" class="btn btn-sm btn-outline-primary" aria-label="View details" data-bs-toggle="tooltip" title="View Details">
                 <i class="df-icon-chart-data"></i>
             </a>
-            <a href="/app/links/{{.ID}}/edit" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Edit">
+            <a href="/app/links/{{.ID}}/edit" class="btn btn-sm btn-outline-secondary" aria-label="Edit" data-bs-toggle="tooltip" title="Edit">
                 <i class="df-icon-edit"></i>
             </a>
             {{if not .DeletedAt}}
-            <button class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Delete"
+            <button class="btn btn-sm btn-outline-danger" aria-label="Delete" data-bs-toggle="tooltip" title="Delete"
                     hx-delete="/app/htmx/links/{{.ID}}"
                     hx-target="closest tr"
                     hx-swap="outerHTML"

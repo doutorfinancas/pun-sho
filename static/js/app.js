@@ -28,7 +28,14 @@ function showToast(message, type) {
     wrapper.appendChild(closeBtn);
     toastEl.appendChild(wrapper);
 
-    document.getElementById('toast-container').appendChild(toastEl);
+    var container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        document.body.appendChild(container);
+    }
+    container.appendChild(toastEl);
     var toast = new bootstrap.Toast(toastEl, { delay: 4000 });
     toast.show();
 
@@ -39,10 +46,10 @@ function showToast(message, type) {
 
 // Copy to clipboard
 function copyToClipboard(text, btn) {
+    var origIcon = btn.querySelector('i');
+    var origClass = origIcon ? origIcon.className : '';
     navigator.clipboard.writeText(text).then(function() {
         btn.classList.add('copied');
-        var origIcon = btn.querySelector('i');
-        var origClass = origIcon ? origIcon.className : '';
         if (origIcon) {
             origIcon.className = 'df-icon-check';
         }
@@ -53,6 +60,12 @@ function copyToClipboard(text, btn) {
             btn.classList.remove('copied');
         }, 2000);
         showToast('Copied to clipboard!', 'success');
+    }).catch(function() {
+        btn.classList.remove('copied');
+        if (origIcon) {
+            origIcon.className = origClass;
+        }
+        showToast('Failed to copy to clipboard', 'error');
     });
 }
 

@@ -58,27 +58,23 @@ func (s *AnalyticsService) ClicksOverTime(shortyID *uuid.UUID, from, until time.
 		truncFunc = "month"
 	}
 
-	var points []TimeseriesPoint
-	query := s.db.Orm.Raw(`
+	query := `
 		SELECT date_trunc(?, created_at)::date::text as label, COUNT(*) as value
 		FROM shorty_accesses
 		WHERE created_at BETWEEN ? AND ?
-		AND status = 'redirected'`+shortyFilter(shortyID)+`
-		GROUP BY label
-		ORDER BY label`, truncFunc, from, until)
+		AND status = 'redirected'`
+
+	args := []interface{}{truncFunc, from, until}
 
 	if shortyID != nil {
-		query = s.db.Orm.Raw(`
-			SELECT date_trunc(?, created_at)::date::text as label, COUNT(*) as value
-			FROM shorty_accesses
-			WHERE created_at BETWEEN ? AND ?
-			AND status = 'redirected'
-			AND shorty_id = ?
-			GROUP BY label
-			ORDER BY label`, truncFunc, from, until, *shortyID)
+		query += " AND shorty_id = ?"
+		args = append(args, *shortyID)
 	}
 
-	query.Scan(&points)
+	query += " GROUP BY label ORDER BY label"
+
+	var points []TimeseriesPoint
+	s.db.Orm.Raw(query, args...).Scan(&points)
 	if points == nil {
 		points = []TimeseriesPoint{}
 	}
@@ -251,9 +247,3 @@ func (s *AnalyticsService) GlobalSummary(from, until time.Time) GlobalStats {
 	return stats
 }
 
-func shortyFilter(shortyID *uuid.UUID) string {
-	if shortyID != nil {
-		return " AND shorty_id = ?"
-	}
-	return ""
-}

@@ -9,5 +9,8 @@ type UTMParams struct {
 }
 
 func (u *UTMParams) IsEmpty() bool {
+	if u == nil {
+		return true
+	}
 	return u.Source == "" && u.Medium == "" && u.Campaign == "" && u.Term == "" && u.Content == ""
 }

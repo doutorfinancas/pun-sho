@@ -139,7 +139,7 @@
                                 <div class="d-flex align-items-center gap-2">
                                     <input type="color" class="form-control form-control-color form-control-sm" name="qr_bg_color" value="#ffffff" style="width: 40px; height: 32px;"
                                            id="qr_bg_color_picker">
-                                    <input type="text" class="form-control form-control-sm" id="qr_bg_hex" value="#ffffff" pattern="#[0-9a-fA-F]{6}" maxlength="11"
+                                    <input type="text" class="form-control form-control-sm" id="qr_bg_hex" value="#ffffff" pattern="#[0-9a-fA-F]{6}" maxlength="7"
                                            onchange="document.getElementById('qr_bg_color_picker').value = this.value"
                                            oninput="document.getElementById('qr_bg_color_picker').value = this.value.startsWith('#') ? this.value : '#ffffff'">
                                 </div>
@@ -193,7 +193,7 @@ document.querySelectorAll('input[type="color"]').forEach(function(picker) {
 <script>
 function labelManager() {
     return {
-        labels: [{{range $i, $l := .Labels}}{{if $i}},{{end}}"{{$l}}"{{end}}],
+        labels: {{json .Labels}},
         addLabel(event) {
             var val = event.target.value.trim();
             if (val && !this.labels.includes(val)) {

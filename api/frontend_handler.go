@@ -1,8 +1,11 @@
 package api
 
 import (
+	"crypto/rand"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
+	htmlpkg "html"
 	"net/http"
 	"strconv"
 	"time"
@@ -15,6 +18,8 @@ import (
 	"github.com/doutorfinancas/pun-sho/entity"
 	"github.com/doutorfinancas/pun-sho/service"
 )
+
+const maxLogoBytes = 1 << 20 // 1 MB
 
 type FrontendHandler struct {
 	log          *zap.Logger
@@ -315,7 +320,7 @@ func (h *FrontendHandler) htmxDashboardLabels(c *gin.Context) {
 			html += fmt.Sprintf(`<div class="d-flex justify-content-between align-items-center mb-2">
 				<span class="label-chip">%s</span>
 				<span class="fw-semibold">%d</span>
-			</div>`, l.Label, l.Count)
+			</div>`, htmlpkg.EscapeString(l.Label), l.Count)
 		}
 	}
 
@@ -385,7 +390,7 @@ func (h *FrontendHandler) htmxLinksList(c *gin.Context) {
 
 		labels := ""
 		for _, label := range l.Labels {
-			labels += fmt.Sprintf(`<span class="label-chip">%s</span>`, label)
+			labels += fmt.Sprintf(`<span class="label-chip">%s</span>`, htmlpkg.EscapeString(label))
 		}
 
 		created := ""
@@ -398,6 +403,7 @@ func (h *FrontendHandler) htmxLinksList(c *gin.Context) {
 			deleteBtn = fmt.Sprintf(`<button class="btn btn-sm btn-outline-danger" hx-delete="/app/htmx/links/%s" hx-target="closest tr" hx-swap="outerHTML" hx-confirm="Delete this link?"><i class="df-icon-delete"></i></button>`, l.ID)
 		}
 
+		escapedLink := htmlpkg.EscapeString(l.Link)
 		html += fmt.Sprintf(`<tr>
 			<td class="ps-4"><div class="d-flex align-items-center"><a href="/app/links/%s" class="text-decoration-none fw-semibold">%s</a><button class="btn btn-sm btn-link p-0 ms-1 copy-btn" onclick="copyToClipboard('%s', this)"><i class="df-icon-copy"></i></button></div></td>
 			<td><span class="truncate d-inline-block" style="max-width:300px;" data-bs-toggle="tooltip" title="%s">%s</span></td>
@@ -406,7 +412,7 @@ func (h *FrontendHandler) htmxLinksList(c *gin.Context) {
 			<td>%s</td>
 			<td class="small text-gray-600">%s</td>
 			<td class="pe-4"><div class="d-flex gap-1"><a href="/app/links/%s" class="btn btn-sm btn-outline-primary"><i class="df-icon-chart-data"></i></a><a href="/app/links/%s/edit" class="btn btn-sm btn-outline-secondary"><i class="df-icon-edit"></i></a>%s</div></td>
-		</tr>`, l.ID, shortLink, shortLink, l.Link, l.Link, l.Visits, l.Redirects, statusBadge, labels, created, l.ID, l.ID, deleteBtn)
+		</tr>`, l.ID, shortLink, shortLink, escapedLink, escapedLink, l.Visits, l.Redirects, statusBadge, labels, created, l.ID, l.ID, deleteBtn)
 	}
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
@@ -618,7 +624,11 @@ func (h *FrontendHandler) htmxUpdateUser(c *gin.Context) {
 	case "toggle_role":
 		_, err = h.authSvc.ToggleRole(id)
 	case "reset_password":
-		err = h.authSvc.ResetPassword(id, "changeme123")
+		newPass := generateRandomPassword()
+		err = h.authSvc.ResetPassword(id, newPass)
+		if err == nil {
+			c.Header("HX-Toast-Success", fmt.Sprintf("Password reset to: %s", newPass))
+		}
 	}
 
 	if err != nil {
@@ -685,7 +695,7 @@ func (h *FrontendHandler) renderUsersTableBody(c *gin.Context) {
 			<td>%s</td>
 			<td>%s</td>
 			<td class="pe-4"><div class="dropdown"><button class="btn btn-sm btn-link" data-bs-toggle="dropdown"><i class="df-icon-options-2"></i></button><ul class="dropdown-menu"><li><button class="dropdown-item" hx-patch="/app/htmx/users/%s" hx-vals='{"action":"toggle_role"}' hx-target="#users-table-body" hx-confirm="Change role for %s?"><i class="df-icon-shield-person me-1"></i> Toggle Role</button></li><li><button class="dropdown-item" hx-patch="/app/htmx/users/%s" hx-vals='{"action":"reset_password"}' hx-target="#users-table-body" hx-confirm="Reset password for %s?"><i class="df-icon-password me-1"></i> Reset Password</button></li><li><hr class="dropdown-divider"></li><li><button class="dropdown-item text-danger" hx-delete="/app/htmx/users/%s" hx-target="#users-table-body" hx-confirm="Delete user %s?"><i class="df-icon-delete me-1"></i> Delete</button></li></ul></div></td>
-		</tr>`, u.Username, u.Email, roleBadge, totpIcon, msIcon, created, u.ID, u.Username, u.ID, u.Username, u.ID, u.Username)
+		</tr>`, htmlpkg.EscapeString(u.Username), htmlpkg.EscapeString(u.Email), roleBadge, totpIcon, msIcon, created, u.ID, htmlpkg.EscapeString(u.Username), u.ID, htmlpkg.EscapeString(u.Username), u.ID, htmlpkg.EscapeString(u.Username))
 	}
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
@@ -725,6 +735,9 @@ func buildQRRequest(c *gin.Context) *request.QRCode {
 		file, header, err := c.Request.FormFile("qr_logo")
 		if err == nil && header.Size > 0 {
 			defer file.Close()
+			if header.Size > maxLogoBytes {
+				return qr
+			}
 			logoBytes := make([]byte, header.Size)
 			if _, readErr := file.Read(logoBytes); readErr == nil {
 				qr.LogoImage = base64.StdEncoding.EncodeToString(logoBytes)
@@ -743,10 +756,16 @@ func renderBreakdownTable(c *gin.Context, items []service.BreakdownItem, columnN
 
 	html := fmt.Sprintf(`<table class="table table-sm"><thead><tr><th>%s</th><th class="text-end">Clicks</th></tr></thead><tbody>`, columnName)
 	for _, item := range items {
-		html += fmt.Sprintf(`<tr><td>%s</td><td class="text-end fw-semibold">%d</td></tr>`, item.Name, item.Count)
+		html += fmt.Sprintf(`<tr><td>%s</td><td class="text-end fw-semibold">%d</td></tr>`, htmlpkg.EscapeString(item.Name), item.Count)
 	}
 	html += `</tbody></table>`
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	c.String(http.StatusOK, html)
+}
+
+func generateRandomPassword() string {
+	b := make([]byte, 16)
+	_, _ = rand.Read(b)
+	return hex.EncodeToString(b)
 }

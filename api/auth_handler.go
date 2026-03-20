@@ -2,6 +2,8 @@ package api
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"net/http"
 
 	"github.com/coreos/go-oidc"
@@ -14,11 +16,16 @@ import (
 	"github.com/doutorfinancas/pun-sho/service"
 )
 
+const (
+	stateCookieName = "pun_sho_oauth_state"
+)
+
 type AuthHandler struct {
 	log               *zap.Logger
 	authSvc           *service.AuthService
 	cookieDomain      string
 	localLoginEnabled bool
+	sessionMaxAge     int
 	msOAuthConfig     *oauth2.Config
 	msOIDCVerifier    *oidc.IDTokenVerifier
 	allowedGroups     []string
@@ -29,12 +36,14 @@ func NewAuthHandler(
 	authSvc *service.AuthService,
 	cookieDomain string,
 	disableLocalLogin bool,
+	sessionMaxAge int,
 ) *AuthHandler {
 	return &AuthHandler{
 		log:               log,
 		authSvc:           authSvc,
 		cookieDomain:      cookieDomain,
 		localLoginEnabled: !disableLocalLogin,
+		sessionMaxAge:     sessionMaxAge,
 	}
 }
 
@@ -160,14 +169,13 @@ func (h *AuthHandler) totpVerify(c *gin.Context) {
 	}
 
 	if !h.authSvc.ValidateTOTP(user, req.Code) {
-		// Delete the pending session
 		_ = h.authSvc.Logout(req.SessionToken)
 		c.Redirect(http.StatusFound, "/app/login?error=Invalid+TOTP+code")
 		return
 	}
 
 	// TOTP valid — set the cookie with the existing session token
-	c.SetCookie(SessionCookieName, req.SessionToken, 60*60*48, "/", h.cookieDomain, false, true)
+	c.SetCookie(SessionCookieName, req.SessionToken, h.sessionMaxAge, "/", h.cookieDomain, isSecure(c), true)
 	c.Redirect(http.StatusFound, "/app/")
 }
 
@@ -176,7 +184,7 @@ func (h *AuthHandler) logout(c *gin.Context) {
 	if token != "" {
 		_ = h.authSvc.Logout(token)
 	}
-	c.SetCookie(SessionCookieName, "", -1, "/", h.cookieDomain, false, true)
+	c.SetCookie(SessionCookieName, "", -1, "/", h.cookieDomain, isSecure(c), true)
 	c.Redirect(http.StatusFound, "/app/login")
 }
 
@@ -186,10 +194,19 @@ func (h *AuthHandler) msRedirect(c *gin.Context) {
 		return
 	}
 
+	stateBytes := make([]byte, 16)
+	if _, err := rand.Read(stateBytes); err != nil {
+		c.Redirect(http.StatusFound, "/app/login?error=Internal+error")
+		return
+	}
+	state := hex.EncodeToString(stateBytes)
+
+	c.SetCookie(stateCookieName, state, 600, "/app/auth", h.cookieDomain, isSecure(c), true)
+
 	config := *h.msOAuthConfig
 	config.RedirectURL = scheme(c) + "://" + c.Request.Host + "/app/auth/ms/callback"
 
-	url := config.AuthCodeURL("state")
+	url := config.AuthCodeURL(state)
 	c.Redirect(http.StatusFound, url)
 }
 
@@ -198,6 +215,22 @@ func (h *AuthHandler) msCallback(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/app/login")
 		return
 	}
+
+	// Validate OAuth state
+	expectedState, err := c.Cookie(stateCookieName)
+	if err != nil || expectedState == "" {
+		c.Redirect(http.StatusFound, "/app/login?error=Missing+state")
+		return
+	}
+
+	actualState := c.Query("state")
+	if actualState != expectedState {
+		c.Redirect(http.StatusFound, "/app/login?error=Invalid+state")
+		return
+	}
+
+	// Clear state cookie
+	c.SetCookie(stateCookieName, "", -1, "/app/auth", h.cookieDomain, isSecure(c), true)
 
 	code := c.Query("code")
 	if code == "" {
@@ -229,12 +262,21 @@ func (h *AuthHandler) msCallback(c *gin.Context) {
 	}
 
 	var claims struct {
-		Email             string `json:"email"`
-		PreferredUsername string `json:"preferred_username"`
+		Email             string   `json:"email"`
+		PreferredUsername string   `json:"preferred_username"`
+		Groups           []string `json:"groups"`
 	}
 	if err := idToken.Claims(&claims); err != nil {
 		c.Redirect(http.StatusFound, "/app/login?error=Failed+to+parse+claims")
 		return
+	}
+
+	// Enforce group membership if configured
+	if len(h.allowedGroups) > 0 {
+		if !hasMatchingGroup(claims.Groups, h.allowedGroups) {
+			c.Redirect(http.StatusFound, "/app/login?error=Access+denied")
+			return
+		}
 	}
 
 	email := claims.Email
@@ -257,8 +299,12 @@ func (h *AuthHandler) createSessionAndRedirect(c *gin.Context, userID uuid.UUID)
 		c.Redirect(http.StatusFound, "/app/login?error=Session+error")
 		return
 	}
-	c.SetCookie(SessionCookieName, session.Token, 60*60*48, "/", h.cookieDomain, false, true)
+	c.SetCookie(SessionCookieName, session.Token, h.sessionMaxAge, "/", h.cookieDomain, isSecure(c), true)
 	c.Redirect(http.StatusFound, "/app/")
+}
+
+func isSecure(c *gin.Context) bool {
+	return c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https"
 }
 
 func scheme(c *gin.Context) string {
@@ -271,3 +317,15 @@ func scheme(c *gin.Context) string {
 	return "http"
 }
 
+func hasMatchingGroup(userGroups, allowedGroups []string) bool {
+	allowed := make(map[string]struct{}, len(allowedGroups))
+	for _, g := range allowedGroups {
+		allowed[g] = struct{}{}
+	}
+	for _, g := range userGroups {
+		if _, ok := allowed[g]; ok {
+			return true
+		}
+	}
+	return false
+}

@@ -28,7 +28,7 @@
                     <td><span class="status-badge {{if eq .Role "admin"}}status-info{{else}}status-success{{end}}">{{.Role}}</span></td>
                     <td>{{if .TOTPEnabled}}<i class="df-icon-check-circle text-success"></i>{{else}}<i class="df-icon-cancel text-gray-500"></i>{{end}}</td>
                     <td>{{if .MSLinked}}<i class="df-icon-check-circle text-success"></i>{{else}}<i class="df-icon-cancel text-gray-500"></i>{{end}}</td>
-                    <td>{{.CreatedAt.Format "Jan 02, 2006"}}</td>
+                    <td>{{formatDate .CreatedAt}}</td>
                     <td class="pe-4">
                         <div class="dropdown">
                             <button class="btn btn-sm btn-link" data-bs-toggle="dropdown">
