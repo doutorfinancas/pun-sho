@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/doutorfinancas/pun-sho/api/request"
 	"github.com/doutorfinancas/pun-sho/service"
@@ -64,12 +65,14 @@ func (h *urlHandler) RedirectLinkIfExists(c *gin.Context) {
 }
 
 func ReadUserIP(r *http.Request) string {
-	IPAddress := r.Header.Get("X-Real-Ip")
-	if IPAddress == "" {
-		IPAddress = r.Header.Get("X-Forwarded-For")
+	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+		if i := strings.Index(xff, ","); i != -1 {
+			return strings.TrimSpace(xff[:i])
+		}
+		return strings.TrimSpace(xff)
 	}
-	if IPAddress == "" {
-		IPAddress = r.RemoteAddr
+	if xri := r.Header.Get("X-Real-Ip"); xri != "" {
+		return xri
 	}
-	return IPAddress
+	return r.RemoteAddr
 }

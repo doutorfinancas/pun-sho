@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type Session struct {
@@ -13,6 +14,13 @@ type Session struct {
 	Verified  bool       `json:"-" gorm:"column:verified;default:false"`
 	ExpiresAt time.Time  `json:"expires_at" gorm:"column:expires_at"`
 	CreatedAt *time.Time `json:"created_at" gorm:"column:created_at"`
+}
+
+func (s *Session) BeforeCreate(_ *gorm.DB) error {
+	if s.ID == uuid.Nil {
+		s.ID = uuid.New()
+	}
+	return nil
 }
 
 func (*Session) TableName() string {

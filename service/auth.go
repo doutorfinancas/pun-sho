@@ -234,7 +234,7 @@ func (s *AuthService) FindOrCreateMSUser(email, msEmail string) (*entity.User, e
 	user, err = s.userRepo.FindByEmail(email)
 	if err == nil {
 		user.MSLinked = true
-		user.MSEmail = msEmail
+		user.MSEmail = &msEmail
 		if saveErr := s.userRepo.Database.Save(user); saveErr != nil {
 			return nil, saveErr
 		}
@@ -247,7 +247,7 @@ func (s *AuthService) FindOrCreateMSUser(email, msEmail string) (*entity.User, e
 		Email:        email,
 		PasswordHash: "",
 		MSLinked:     true,
-		MSEmail:      msEmail,
+		MSEmail:      &msEmail,
 		Role:         "user",
 	}
 

@@ -53,9 +53,7 @@ func (h *AuthHandler) ConfigureMicrosoftOAuth(tenantID, clientID, clientSecret s
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	provider, err := oidc.NewProvider(ctx, "https://login.microsoftonline.com/"+tenantID+"/v2.0")
+	provider, err := oidc.NewProvider(context.Background(), "https://login.microsoftonline.com/"+tenantID+"/v2.0")
 	if err != nil {
 		h.log.Error("Failed to initialize MS OIDC provider", zap.Error(err))
 		return
@@ -247,7 +245,8 @@ func (h *AuthHandler) msCallback(c *gin.Context) {
 	config := *h.msOAuthConfig
 	config.RedirectURL = scheme(c) + "://" + c.Request.Host + "/app/auth/ms/callback"
 
-	ctx := c.Request.Context()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 	token, err := config.Exchange(ctx, code)
 	if err != nil {
 		h.log.Error("MS OAuth exchange failed", zap.Error(err))
@@ -263,6 +262,7 @@ func (h *AuthHandler) msCallback(c *gin.Context) {
 
 	idToken, err := h.msOIDCVerifier.Verify(ctx, rawIDToken)
 	if err != nil {
+		h.log.Error("MS OIDC token verification failed", zap.Error(err))
 		c.Redirect(http.StatusFound, "/app/login?error=Invalid+ID+token")
 		return
 	}
