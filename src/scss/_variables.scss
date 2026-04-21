@@ -1,0 +1,141 @@
+// ============================================
+// Doutor Financas Design System Variables
+// Mapped to Bootstrap 5 Variables
+// Source: @doutorfinancas/themes@0.0.3
+// ============================================
+
+// Blues (Brand)
+$df-blue-050: rgb(90%, 96%, 98%);
+$df-blue-100: rgb(80%, 92%, 96.1%);
+$df-blue-200: rgb(60%, 84%, 92.2%);
+$df-blue-300: rgb(40%, 76%, 88.2%);
+$df-blue-400: rgb(20%, 68%, 84.3%);
+$df-blue-500: #0099CD;
+$df-blue-600: rgb(0%, 48%, 64.3%);
+$df-blue-700: rgb(0%, 36%, 48.2%);
+$df-blue-800: rgb(0%, 24%, 32.2%);
+$df-blue-900: rgb(0%, 12%, 16.1%);
+
+// Violets (Secondary)
+$df-violet-500: #000046;
+
+// Greens (Success)
+$df-green-050: rgb(90.4%, 95.5%, 92.9%);
+$df-green-500: #0a8c4b;
+$df-green-600: rgb(3.14%, 43.9%, 23.5%);
+
+// Oranges (Warning)
+$df-orange-050: rgb(99.3%, 95.1%, 90%);
+$df-orange-500: #ec8200;
+$df-orange-600: rgb(74%, 40.8%, 0%);
+
+// Reds (Danger/Error)
+$df-red-050: rgb(98.7%, 92.4%, 91.8%);
+$df-red-500: #de3d2f;
+$df-red-600: rgb(69.6%, 19.1%, 14.7%);
+
+// Yellows
+$df-yellow-500: #ffb400;
+
+// Neutrals
+$df-neutral-00: #ffffff;
+$df-neutral-050: rgb(97.4%, 97.6%, 97.8%);
+$df-neutral-100: rgb(94.8%, 95.1%, 95.5%);
+$df-neutral-200: rgb(89.6%, 90.3%, 91.1%);
+$df-neutral-300: rgb(84.5%, 85.4%, 86.6%);
+$df-neutral-400: rgb(79.3%, 80.5%, 82.1%);
+$df-neutral-500: #bdc1c6;
+$df-neutral-600: rgb(59.3%, 60.5%, 62.1%);
+$df-neutral-700: rgb(44.5%, 45.4%, 46.6%);
+$df-neutral-800: rgb(29.6%, 30.3%, 31.1%);
+$df-neutral-900: rgb(14.8%, 15.1%, 15.5%);
+
+// Bootstrap Theme Colors Override
+$primary:   $df-blue-500;
+$secondary: $df-neutral-700;
+$success:   $df-green-500;
+$info:      $df-blue-600;
+$warning:   $df-orange-500;
+$danger:    $df-red-500;
+$light:     $df-neutral-100;
+$dark:      $df-neutral-900;
+
+// Typography
+$font-family-sans-serif: "Proxima Nova Alt", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+$font-family-base: $font-family-sans-serif;
+$font-weight-normal: 400;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+$font-size-root: 16px;
+$font-size-base: 1rem;
+$font-size-sm: 0.875rem;
+$font-size-lg: 1.125rem;
+$line-height-base: 1.618;
+
+// Border Radius
+$border-radius:    8px;
+$border-radius-sm: 4px;
+$border-radius-lg: 16px;
+$border-radius-xl: 16px;
+$border-radius-xxl: 16px;
+$border-radius-pill: 999px;
+
+// Spacing
+$spacer: 1rem;
+$spacers: (
+  0: 0,
+  1: 4px,
+  2: 8px,
+  3: 12px,
+  4: 16px,
+  5: 24px,
+  6: 32px,
+  7: 40px,
+  8: 48px,
+);
+
+// Buttons
+$btn-border-radius:    8px;
+$btn-border-radius-sm: 8px;
+$btn-border-radius-lg: 8px;
+$btn-border-width:     2px;
+$btn-padding-y:        8px;
+$btn-padding-x:        8px;
+$btn-padding-y-sm:     4px;
+$btn-padding-x-sm:     4px;
+$btn-padding-y-lg:     12px;
+$btn-padding-x-lg:     12px;
+$btn-font-weight: 600;
+
+// Form Controls
+$input-border-radius:    8px;
+$input-border-width:     2px;
+$input-border-color:     $df-neutral-300;
+$input-focus-border-color: $df-violet-500;
+$input-focus-box-shadow:   none;
+$form-feedback-invalid-color: $df-red-600;
+$input-color: $df-violet-500;
+$input-placeholder-color: $df-neutral-600;
+
+// Cards
+$card-border-radius: 16px;
+$card-border-width:  1px;
+$card-border-color:  $df-neutral-300;
+
+// Modals
+$modal-content-border-radius: 16px;
+$modal-content-border-width:  2px;
+
+// Offcanvas
+$offcanvas-border-radius: 16px;
+$offcanvas-horizontal-width: 60%;
+
+// Transitions
+$transition-base: all 450ms cubic-bezier(0.2, 0.5, 0, 1);
+
+// Shadows
+$box-shadow-sm: 0px 2px 2px 0px rgba(0, 0, 42, 0.08);
+$box-shadow:    0px 4px 4px 0px rgba(0, 0, 42, 0.08);
+$box-shadow-lg: 0px 8px 8px 0px rgba(0, 0, 42, 0.08);
+
+$body-color: $df-violet-500;

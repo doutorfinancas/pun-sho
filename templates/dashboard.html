@@ -1,0 +1,90 @@
+{{define "dashboard_content"}}
+<div class="row g-4 mb-4" id="stats-cards"
+     hx-get="/app/htmx/dashboard/stats"
+     hx-trigger="load"
+     hx-swap="innerHTML">
+    {{template "stats_cards_placeholder" .}}
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="df-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Clicks Over Time</h5>
+                <select class="form-select form-select-sm" style="width: auto;" id="chart-granularity" name="granularity"
+                        hx-get="/app/htmx/dashboard/chart"
+                        hx-target="#clicks-chart"
+                        hx-trigger="change">
+                    <option value="day">Daily</option>
+                    <option value="week">Weekly</option>
+                    <option value="month">Monthly</option>
+                </select>
+            </div>
+            <div id="clicks-chart"
+                 hx-get="/app/htmx/dashboard/chart?granularity=day"
+                 hx-trigger="load"
+                 hx-swap="innerHTML">
+                <div class="text-center py-5 text-gray-500">
+                    <div class="spinner-border spinner-border-sm" role="status"></div>
+                    Loading chart...
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="df-card">
+            <h5 class="mb-3">Top Labels</h5>
+            <div id="label-ranking"
+                 hx-get="/app/htmx/dashboard/labels"
+                 hx-trigger="load"
+                 hx-swap="innerHTML">
+                <div class="text-center py-3 text-gray-500">
+                    <div class="spinner-border spinner-border-sm" role="status"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="df-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Recent Links</h5>
+        <a href="/app/links" class="btn btn-sm btn-outline-primary">View All</a>
+    </div>
+    <div id="recent-links"
+         hx-get="/app/htmx/dashboard/recent"
+         hx-trigger="load"
+         hx-swap="innerHTML">
+        <div class="text-center py-3 text-gray-500">
+            <div class="spinner-border spinner-border-sm" role="status"></div>
+        </div>
+    </div>
+</div>
+{{end}}
+
+{{define "stats_cards_placeholder"}}
+<div class="col-md-3">
+    <div class="df-card text-center">
+        <div class="text-gray-500 small mb-1">Total Links</div>
+        <div class="h3 mb-0">-</div>
+    </div>
+</div>
+<div class="col-md-3">
+    <div class="df-card text-center">
+        <div class="text-gray-500 small mb-1">Total Clicks (30d)</div>
+        <div class="h3 mb-0">-</div>
+    </div>
+</div>
+<div class="col-md-3">
+    <div class="df-card text-center">
+        <div class="text-gray-500 small mb-1">Active Links</div>
+        <div class="h3 mb-0">-</div>
+    </div>
+</div>
+<div class="col-md-3">
+    <div class="df-card text-center">
+        <div class="text-gray-500 small mb-1">Expired Links</div>
+        <div class="h3 mb-0">-</div>
+    </div>
+</div>
+{{end}}

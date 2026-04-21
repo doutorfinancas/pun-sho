@@ -4,3 +4,6 @@ tmp
 pun-sho
 .env
 http-requests/http-client.private.env.json
+node_modules
+.claude/settings.local.json
+GeoLite2-City.mmdb

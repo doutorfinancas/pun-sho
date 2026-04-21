@@ -1,0 +1,96 @@
+{{define "links_content"}}
+<div class="toolbar">
+    <form id="link-filters" class="toolbar-filters flex-wrap gap-2">
+        <div class="input-group" style="width: 250px;">
+            <span class="input-group-text"><i class="df-icon-search"></i></span>
+            <input type="text" class="form-control" placeholder="Search links..."
+                   name="search" id="link-search"
+                   hx-get="/app/htmx/links/list"
+                   hx-target="#links-table-body"
+                   hx-trigger="keyup changed delay:300ms"
+                   hx-include="#link-filters">
+        </div>
+        <select class="form-select" style="width: auto;" name="status" id="link-status-filter"
+                hx-get="/app/htmx/links/list"
+                hx-target="#links-table-body"
+                hx-trigger="change"
+                hx-include="#link-filters">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="expired">Expired</option>
+            <option value="deleted">Deleted</option>
+        </select>
+        <select id="link-labels-filter" name="labels" multiple placeholder="Filter by labels...">
+            {{range .AvailableLabels}}
+            <option value="{{.}}">{{.}}</option>
+            {{end}}
+        </select>
+        <input type="date" class="form-control" style="width: auto;" name="from" id="link-from-filter"
+               placeholder="From date"
+               hx-get="/app/htmx/links/list"
+               hx-target="#links-table-body"
+               hx-trigger="change"
+               hx-include="#link-filters">
+        <input type="date" class="form-control" style="width: auto;" name="to" id="link-to-filter"
+               placeholder="To date"
+               hx-get="/app/htmx/links/list"
+               hx-target="#links-table-body"
+               hx-trigger="change"
+               hx-include="#link-filters">
+    </form>
+    <a href="/app/links/new" class="btn btn-primary px-4">
+        <i class="df-icon-add me-1"></i> Create Link
+    </a>
+</div>
+
+<div class="df-card p-0">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-4">Short URL</th>
+                    <th>Destination</th>
+                    <th>Clicks</th>
+                    <th>Status</th>
+                    <th>Labels</th>
+                    <th>Created</th>
+                    <th class="pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="links-table-body"
+                   hx-get="/app/htmx/links/list"
+                   hx-trigger="load"
+                   hx-swap="innerHTML">
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-gray-500">
+                        <div class="spinner-border spinner-border-sm" role="status"></div>
+                        Loading links...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="links-pagination" class="mt-3"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var labelSelect = document.getElementById('link-labels-filter');
+    if (labelSelect && typeof TomSelect !== 'undefined') {
+        var ts = new TomSelect(labelSelect, {
+            plugins: ['remove_button'],
+            maxItems: null,
+            placeholder: 'Filter by labels...',
+            onChange: function() {
+                htmx.ajax('GET', '/app/htmx/links/list', {
+                    target: '#links-table-body',
+                    swap: 'innerHTML',
+                    source: '#link-filters'
+                });
+            }
+        });
+    }
+});
+</script>
+{{end}}

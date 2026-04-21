@@ -1,0 +1,26 @@
+{{define "stats_cards"}}
+<div class="col-sm-6 col-xl-3">
+    <div class="df-card text-center">
+        <div class="text-gray-600 small mb-2">Total Links</div>
+        <div class="stat-value text-df-blue-600">{{.TotalLinks}}</div>
+    </div>
+</div>
+<div class="col-sm-6 col-xl-3">
+    <div class="df-card text-center">
+        <div class="text-gray-600 small mb-2">Total Clicks (30d)</div>
+        <div class="stat-value text-df-blue-600">{{.TotalClicks}}</div>
+    </div>
+</div>
+<div class="col-sm-6 col-xl-3">
+    <div class="df-card text-center">
+        <div class="text-gray-600 small mb-2">Active Links</div>
+        <div class="stat-value text-success">{{.ActiveLinks}}</div>
+    </div>
+</div>
+<div class="col-sm-6 col-xl-3">
+    <div class="df-card text-center">
+        <div class="text-gray-600 small mb-2">Expired Links</div>
+        <div class="stat-value text-warning">{{.ExpiredLinks}}</div>
+    </div>
+</div>
+{{end}}

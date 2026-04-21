@@ -37,8 +37,15 @@ func main() {
 	}
 	db := database.NewDatabase(g)
 
+	// Existing repositories
 	shortyRepo := entity.NewShortyRepository(db, log)
 	shortyAccessRepo := entity.NewShortyAccessRepository(db, log)
+
+	// New repositories
+	userRepo := entity.NewUserRepository(db, log)
+	sessionRepo := entity.NewSessionRepository(db, log)
+
+	// Services
 	qrSvc := service.NewQRCodeService(cfg.QRLogo)
 	shortySvc := service.NewShortyService(
 		log,
@@ -51,7 +58,25 @@ func main() {
 		cfg.GetConfiguredSocialBots(),
 	)
 
-	a := api.NewAPI(log, cfg, shortySvc, qrSvc)
+	// GeoIP service
+	geoSvc := service.NewGeoIPService(log, cfg.GeoIPDBPath, cfg.GeoIPLicenseKey)
+	defer geoSvc.Close()
+	shortySvc.SetGeoIPService(geoSvc)
+
+	// Auth service
+	authSvc := service.NewAuthService(log, userRepo, sessionRepo, cfg.GetSessionDuration())
+
+	// Seed default admin if no users exist
+	if cfg.AdminDefaultPassword != "" {
+		if err := authSvc.SeedDefaultAdmin(cfg.AdminDefaultPassword); err != nil {
+			log.Error("Failed to seed default admin", zap.Error(err))
+		}
+	}
+
+	// Analytics service
+	analyticsSvc := service.NewAnalyticsService(log, db)
+
+	a := api.NewAPI(log, cfg, shortySvc, qrSvc, authSvc, analyticsSvc)
 
 	a.Run()
 }

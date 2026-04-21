@@ -1,0 +1,211 @@
+{{define "link_form_content"}}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="df-card">
+            <form method="POST" action="{{if .Link}}/app/links/{{.Link.ID}}{{else}}/app/links{{end}}" id="link-form" enctype="multipart/form-data">
+
+                <div class="mb-3">
+                    <label for="destination" class="form-label fw-semibold">Destination URL <span class="text-danger">*</span></label>
+                    <input type="url" class="form-control" id="destination" name="link"
+                           value="{{if .Link}}{{.Link.Link}}{{end}}" placeholder="https://example.com/your-long-url" required>
+                </div>
+
+                {{if not .Link}}
+                <div class="mb-3">
+                    <label for="slug" class="form-label fw-semibold">Custom Slug <span class="text-gray-500 fw-normal">(optional)</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text">{{.HostName}}/s/</span>
+                        <input type="text" class="form-control" id="slug" name="slug"
+                               placeholder="leave empty for random"
+                               pattern="[a-zA-Z0-9_-]+" minlength="3"
+                               hx-get="/app/htmx/links/check-slug"
+                               hx-trigger="keyup changed delay:500ms"
+                               hx-target="#slug-status">
+                        <span id="slug-status" class="input-group-text"></span>
+                    </div>
+                    <div class="form-text">Min 3 characters. Letters, numbers, hyphens, underscores only.</div>
+                </div>
+                {{else}}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Slug</label>
+                    <div class="input-group">
+                        <span class="input-group-text">{{.HostName}}/s/</span>
+                        <input type="text" class="form-control" value="{{.Link.PublicID}}" disabled>
+                    </div>
+                    <div class="form-text">Slug cannot be changed after creation.</div>
+                </div>
+                {{end}}
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="ttl" class="form-label fw-semibold">Expiration Date <span class="text-gray-500 fw-normal">(optional)</span></label>
+                        <input type="datetime-local" class="form-control" id="ttl" name="ttl"
+                               value="{{if .Link}}{{if and .Link.TTL (not (isExpiredYear .Link.TTL))}}{{.Link.TTL.Format "2006-01-02T15:04"}}{{end}}{{end}}">
+                        <div class="form-text">Leave empty for no expiration.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="redirection_limit" class="form-label fw-semibold">Redirect Limit <span class="text-gray-500 fw-normal">(optional)</span></label>
+                        <input type="number" class="form-control" id="redirection_limit" name="redirection_limit"
+                               value="{{if .Link}}{{if and .Link.RedirectionLimit (gt (deref .Link.RedirectionLimit) 0)}}{{deref .Link.RedirectionLimit}}{{end}}{{end}}"
+                               min="0" placeholder="unlimited">
+                    </div>
+                </div>
+
+                <div class="mb-3" x-data="labelManager()">
+                    <label class="form-label fw-semibold">Labels</label>
+                    <div class="d-flex flex-wrap gap-1 p-2 border rounded">
+                        <template x-for="(label, index) in labels" :key="index">
+                            <span class="label-chip">
+                                <span x-text="label"></span>
+                                <input type="hidden" name="labels" :value="label">
+                                <button type="button" class="btn-close btn-close-sm ms-1" aria-label="Remove label" @click="removeLabel(index)" style="font-size: 0.5rem;"></button>
+                            </span>
+                        </template>
+                        <input type="text" class="border-0 flex-grow-1" style="outline: none; min-width: 100px;"
+                               placeholder="Type and press Enter" @keydown.enter.prevent="addLabel($event)">
+                    </div>
+                </div>
+
+                <!-- UTM Parameters -->
+                <div class="mb-3">
+                    <a class="fw-semibold text-decoration-none" data-bs-toggle="collapse" href="#utm-section">
+                        <i class="df-icon-arrow-down me-1"></i> UTM Parameters
+                    </a>
+                    <div class="collapse" id="utm-section">
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-6">
+                                <label for="utm_source" class="form-label small">Source</label>
+                                <input type="text" class="form-control form-control-sm" id="utm_source" name="utm_source" placeholder="e.g. newsletter">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="utm_medium" class="form-label small">Medium</label>
+                                <input type="text" class="form-control form-control-sm" id="utm_medium" name="utm_medium" placeholder="e.g. email">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="utm_campaign" class="form-label small">Campaign</label>
+                                <input type="text" class="form-control form-control-sm" id="utm_campaign" name="utm_campaign" placeholder="e.g. spring_sale">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="utm_term" class="form-label small">Term</label>
+                                <input type="text" class="form-control form-control-sm" id="utm_term" name="utm_term" placeholder="e.g. running+shoes">
+                            </div>
+                            <div class="col-md-12">
+                                <label for="utm_content" class="form-label small">Content</label>
+                                <input type="text" class="form-control form-control-sm" id="utm_content" name="utm_content" placeholder="e.g. logolink">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QR Code -->
+                <div class="mb-4">
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="enable_qr" name="enable_qr"
+                               {{if .Link}}{{if .Link.QRCode}}checked{{end}}{{end}}
+                               onchange="document.getElementById('qr-options').classList.toggle('d-none', !this.checked)">
+                        <label class="form-check-label fw-semibold" for="enable_qr">Generate QR Code</label>
+                    </div>
+                    <div id="qr-options" class="border rounded p-3 bg-gray-50 {{if not .Link}}d-none{{else}}{{if not .Link.QRCode}}d-none{{end}}{{end}}">
+                        <!-- Note: QR settings are not stored separately; regeneration uses fresh values -->
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Format</label>
+                                <select class="form-select form-select-sm" name="qr_format">
+                                    <option value="svg">SVG</option>
+                                    <option value="png">PNG</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Shape</label>
+                                <select class="form-select form-select-sm" name="qr_shape">
+                                    <option value="rect">Rectangle</option>
+                                    <option value="circle">Circle</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Size (px)</label>
+                                <input type="number" class="form-control form-control-sm" name="qr_width" value="256" min="64" max="1024">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Foreground Color</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" class="form-control form-control-color form-control-sm" name="qr_fg_color" value="#000000" style="width: 40px; height: 32px;">
+                                    <input type="text" class="form-control form-control-sm" id="qr_fg_hex" value="#000000" pattern="#[0-9a-fA-F]{6}" maxlength="7"
+                                           onchange="this.previousElementSibling.value = this.value"
+                                           oninput="this.previousElementSibling.value = this.value">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Background Color</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" class="form-control form-control-color form-control-sm" name="qr_bg_color" value="#ffffff" style="width: 40px; height: 32px;"
+                                           id="qr_bg_color_picker">
+                                    <input type="text" class="form-control form-control-sm" id="qr_bg_hex" value="#ffffff" pattern="#[0-9a-fA-F]{6}" maxlength="7"
+                                           onchange="document.getElementById('qr_bg_color_picker').value = this.value"
+                                           oninput="document.getElementById('qr_bg_color_picker').value = this.value.startsWith('#') ? this.value : '#ffffff'">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">&nbsp;</label>
+                                <div class="form-check mt-1">
+                                    <input class="form-check-input" type="checkbox" id="qr_bg_transparent" name="qr_bg_transparent"
+                                           onchange="var bg = document.getElementById('qr_bg_hex'); var picker = document.getElementById('qr_bg_color_picker'); if(this.checked) { bg.value='transparent'; bg.disabled=true; picker.disabled=true; } else { bg.value='#ffffff'; bg.disabled=false; picker.disabled=false; picker.value='#ffffff'; }">
+                                    <label class="form-check-label small" for="qr_bg_transparent">Transparent background</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Center Logo <span class="text-gray-500 fw-normal">(optional)</span></label>
+                                <input type="file" class="form-control form-control-sm" name="qr_logo" accept="image/png,image/svg+xml">
+                                <div class="form-text">PNG or SVG. Leave empty to use the default logo.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">&nbsp;</label>
+                                <div class="form-check mt-1">
+                                    <input class="form-check-input" type="checkbox" id="qr_no_logo" name="qr_no_logo">
+                                    <label class="form-check-label small" for="qr_no_logo">No center logo</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="df-icon-save me-1"></i> {{if .Link}}Update{{else}}Create{{end}} Link
+                    </button>
+                    <a href="/app/links" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Sync color picker ↔ hex input -->
+<script>
+document.querySelectorAll('input[type="color"]').forEach(function(picker) {
+    var hex = picker.nextElementSibling;
+    if (hex && hex.type === 'text') {
+        picker.addEventListener('input', function() { hex.value = picker.value; });
+    }
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script>
+function labelManager() {
+    return {
+        labels: {{json .Labels}},
+        addLabel(event) {
+            var val = event.target.value.trim();
+            if (val && !this.labels.includes(val)) {
+                this.labels.push(val);
+            }
+            event.target.value = '';
+        },
+        removeLabel(index) {
+            this.labels.splice(index, 1);
+        }
+    }
+}
+</script>
+{{end}}

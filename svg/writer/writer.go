@@ -88,12 +88,13 @@ func (w CustomSVGWriter) Write(matrix qrcode.Matrix) error {
 	if w.o.Logo != "" {
 		wd := (((width + 1) * moduleSize) - (width * (moduleSize) / 5)) / 2
 		ht := (((height + 1) * moduleSize) - (height * (moduleSize) / 5)) / 2
+		logoURI := detectLogoDataURI(w.o.Logo)
 		w.c.Image(
 			wd,
 			ht,
 			width*(moduleSize)/5,
 			height*(moduleSize)/5,
-			"data:image/svg+xml;base64,"+w.o.Logo)
+			logoURI)
 	}
 
 	return nil
@@ -160,6 +161,30 @@ func (w CustomSVGWriter) shouldDraw(x, y, width, height int) bool {
 	}
 
 	return true
+}
+
+// detectLogoDataURI determines the correct data URI prefix for a base64-encoded logo.
+// It decodes the first few bytes to check for PNG/SVG signatures.
+func detectLogoDataURI(b64Logo string) string {
+	// If it already starts with "data:", it's a full data URI
+	if len(b64Logo) > 5 && b64Logo[:5] == "data:" {
+		return b64Logo
+	}
+
+	// Try to detect format from base64 content
+	// PNG starts with \x89PNG, base64 of which starts with "iVBOR"
+	// SVG starts with "<" or "<?xml", base64 of which starts with "PD" or "PHN2"
+	if len(b64Logo) >= 5 {
+		if b64Logo[:5] == "iVBOR" {
+			return "data:image/png;base64," + b64Logo
+		}
+		if b64Logo[:2] == "PD" || b64Logo[:4] == "PHN2" {
+			return "data:image/svg+xml;base64," + b64Logo
+		}
+	}
+
+	// Default to PNG for backwards compatibility
+	return "data:image/png;base64," + b64Logo
 }
 
 type Options struct {

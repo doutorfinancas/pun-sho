@@ -385,14 +385,14 @@ func TestShortyService_ListWithLabels(t *testing.T) {
 			)
 
 			if len(tt.args.labels) > 0 {
-				expectedQuery := `SELECT s.id, s.created_at, s.deleted_at, s.public_id, s.link, s.ttl, s.redirection_limit, s.labels, count(sa.id) as visits, sum(CASE WHEN sa.status = 'redirected' THEN 1 ELSE 0 END) as redirects FROM shorties s 
-    INNER JOIN shorty_accesses sa 
+				expectedQuery := `SELECT s.id, s.created_at, s.deleted_at, s.public_id, s.link, s.ttl, s.redirection_limit, s.labels, count(sa.id) as visits, COALESCE(sum(CASE WHEN sa.status = 'redirected' THEN 1 ELSE 0 END), 0) as redirects FROM shorties s
+    LEFT JOIN shorty_accesses sa
         ON s.id = sa.shorty_id WHERE s.labels && $1 GROUP BY s.id, s.created_at, s.deleted_at, s.public_id, s.link, s.qr_code, s.ttl, s.redirection_limit, s.labels LIMIT $2 OFFSET $3`
 				labelsArg := formatLabelArray(tt.args.labels)
 				mock.ExpectQuery(regexp.QuoteMeta(expectedQuery)).WithArgs(labelsArg, tt.args.limit, tt.args.offset).WillReturnRows(mockRows)
 			} else {
-				expectedQuery := `SELECT s.id, s.created_at, s.deleted_at, s.public_id, s.link, s.ttl, s.redirection_limit, s.labels, count(sa.id) as visits, sum(CASE WHEN sa.status = 'redirected' THEN 1 ELSE 0 END) as redirects FROM shorties s 
-    INNER JOIN shorty_accesses sa 
+				expectedQuery := `SELECT s.id, s.created_at, s.deleted_at, s.public_id, s.link, s.ttl, s.redirection_limit, s.labels, count(sa.id) as visits, COALESCE(sum(CASE WHEN sa.status = 'redirected' THEN 1 ELSE 0 END), 0) as redirects FROM shorties s
+    LEFT JOIN shorty_accesses sa
         ON s.id = sa.shorty_id GROUP BY s.id, s.created_at, s.deleted_at, s.public_id, s.link, s.qr_code, s.ttl, s.redirection_limit, s.labels LIMIT $1 OFFSET $2`
 				mock.ExpectQuery(regexp.QuoteMeta(expectedQuery)).WithArgs(tt.args.limit, tt.args.offset).WillReturnRows(mockRows)
 			}
@@ -401,7 +401,7 @@ func TestShortyService_ListWithLabels(t *testing.T) {
 				shortyRepository: repo,
 			}
 
-			got, err := s.List(tt.args.withQR, tt.args.labels, tt.args.limit, tt.args.offset)
+			got, err := s.List(tt.args.withQR, tt.args.labels, "", nil, nil, tt.args.limit, tt.args.offset)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
 				return

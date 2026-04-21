@@ -1,0 +1,9 @@
+{{define "status_badge"}}
+{{if .DeletedAt}}
+    <span class="status-badge status-error">Deleted</span>
+{{else if and .TTL (isExpired .TTL)}}
+    <span class="status-badge status-warning">Expired</span>
+{{else}}
+    <span class="status-badge status-success">Active</span>
+{{end}}
+{{end}}

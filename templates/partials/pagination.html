@@ -1,0 +1,28 @@
+{{define "pagination"}}
+{{if gt .TotalPages 1}}
+<nav>
+    <ul class="pagination pagination-sm justify-content-center">
+        <li class="page-item{{if eq .CurrentPage 1}} disabled{{end}}">
+            <a class="page-link" href="#"
+               {{if ne .CurrentPage 1}}hx-get="{{.BaseURL}}?page={{subtract .CurrentPage 1}}&limit={{.Limit}}"
+               hx-target="{{.Target}}"
+               hx-swap="innerHTML"{{end}}>Previous</a>
+        </li>
+        {{range seq .TotalPages}}
+        <li class="page-item{{if eq . $.CurrentPage}} active{{end}}">
+            <a class="page-link" href="#"
+               hx-get="{{$.BaseURL}}?page={{.}}&limit={{$.Limit}}"
+               hx-target="{{$.Target}}"
+               hx-swap="innerHTML">{{.}}</a>
+        </li>
+        {{end}}
+        <li class="page-item{{if eq .CurrentPage .TotalPages}} disabled{{end}}">
+            <a class="page-link" href="#"
+               {{if ne .CurrentPage .TotalPages}}hx-get="{{.BaseURL}}?page={{add .CurrentPage 1}}&limit={{.Limit}}"
+               hx-target="{{.Target}}"
+               hx-swap="innerHTML"{{end}}>Next</a>
+        </li>
+    </ul>
+</nav>
+{{end}}
+{{end}}

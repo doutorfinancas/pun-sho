@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/doutorfinancas/pun-sho/api/request"
 	"github.com/doutorfinancas/pun-sho/service"
@@ -35,7 +36,7 @@ func (h *urlHandler) Group() *string {
 func (h *urlHandler) RedirectLinkIfExists(c *gin.Context) {
 	slug := c.Param("slug")
 	if slug == "" {
-		c.Redirect(http.StatusMovedPermanently, h.unknownPage)
+		c.Redirect(http.StatusFound, h.unknownPage)
 		return
 	}
 
@@ -55,21 +56,23 @@ func (h *urlHandler) RedirectLinkIfExists(c *gin.Context) {
 
 	sho, err := h.service.CreateVisit(slug, req)
 	if err != nil {
-		c.Redirect(http.StatusMovedPermanently, h.unknownPage)
+		c.Redirect(http.StatusFound, h.unknownPage)
 		return
 	}
 
 	c.Header("Cache-Control", "private, max-age=90")
-	c.Redirect(http.StatusMovedPermanently, sho.Link)
+	c.Redirect(http.StatusFound, sho.Link)
 }
 
 func ReadUserIP(r *http.Request) string {
-	IPAddress := r.Header.Get("X-Real-Ip")
-	if IPAddress == "" {
-		IPAddress = r.Header.Get("X-Forwarded-For")
+	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+		if i := strings.Index(xff, ","); i != -1 {
+			return strings.TrimSpace(xff[:i])
+		}
+		return strings.TrimSpace(xff)
 	}
-	if IPAddress == "" {
-		IPAddress = r.RemoteAddr
+	if xri := r.Header.Get("X-Real-Ip"); xri != "" {
+		return xri
 	}
-	return IPAddress
+	return r.RemoteAddr
 }

@@ -1,0 +1,13 @@
+{
+  "name": "pun-sho-scss",
+  "version": "1.0.0",
+  "description": "SCSS compilation for pun-sho with Bootstrap and Doutor Financas Design System",
+  "scripts": {
+    "sass:build": "sass src/scss/main.scss static/css/bootstrap-custom.css --style=compressed --load-path=node_modules",
+    "sass:watch": "sass src/scss/main.scss static/css/bootstrap-custom.css --watch --load-path=node_modules"
+  },
+  "devDependencies": {
+    "sass": "^1.69.0",
+    "bootstrap": "^5.3.2"
+  }
+}

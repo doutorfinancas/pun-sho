@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{if .Title}}{{.Title}} - {{end}}pun-sho</title>
+    <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/static/css/bootstrap-custom.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- Mobile Top Bar -->
+    <header class="mobile-topbar d-md-none">
+        <button class="btn btn-link text-white p-0" id="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('show')">
+            <i class="df-icon-menu" style="font-size: 1.5rem;"></i>
+        </button>
+        <a href="/app/" class="text-white text-decoration-none d-flex align-items-center">
+            <img src="/static/img/logo.svg" alt="pun-sho" height="24" class="me-2" onerror="this.style.display='none'">
+            <span class="fw-bold">pun-sho</span>
+        </a>
+        <span class="small text-white opacity-75">{{.Username}}</span>
+    </header>
+
+    <!-- Sidebar Overlay (mobile) -->
+    <div class="sidebar-overlay d-md-none" onclick="document.getElementById('sidebar').classList.remove('show')"></div>
+
+    <div class="d-flex app-wrapper">
+        <!-- Sidebar -->
+        <nav class="sidebar d-flex flex-column p-3" id="sidebar">
+            <a href="/app/" class="text-white text-decoration-none mb-4 d-flex align-items-center d-none d-md-flex">
+                <img src="/static/img/logo.svg" alt="pun-sho" height="32" class="me-2" onerror="this.style.display='none'">
+                <span class="fs-5 fw-bold">pun-sho</span>
+            </a>
+            <div class="d-md-none d-flex justify-content-end mb-3">
+                <button class="btn btn-link text-white p-0" onclick="document.getElementById('sidebar').classList.remove('show')">
+                    <i class="df-icon-close" style="font-size: 1.25rem;"></i>
+                </button>
+            </div>
+            <ul class="nav flex-column flex-grow-1">
+                <li class="nav-item">
+                    <a class="nav-link{{if eq .ActivePage "dashboard"}} active{{end}}" href="/app/"
+                       onclick="document.getElementById('sidebar').classList.remove('show')">
+                        <i class="df-icon-chart-data"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link{{if or (eq .ActivePage "links") (eq .ActivePage "link_form") (eq .ActivePage "link_detail")}} active{{end}}" href="/app/links"
+                       onclick="document.getElementById('sidebar').classList.remove('show')">
+                        <i class="df-icon-share"></i> Links
+                    </a>
+                </li>
+                {{if eq .UserRole "admin"}}
+                <li class="nav-item">
+                    <a class="nav-link{{if eq .ActivePage "users"}} active{{end}}" href="/app/users"
+                       onclick="document.getElementById('sidebar').classList.remove('show')">
+                        <i class="df-icon-person"></i> Users
+                    </a>
+                </li>
+                {{end}}
+            </ul>
+            <div class="mt-auto border-top border-secondary pt-3">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="df-icon-person-filled me-2"></i>
+                    <span class="small">{{.Username}}</span>
+                </div>
+                <form method="POST" action="/app/logout">
+                    <button type="submit" class="btn btn-sm btn-outline-light w-100">
+                        <i class="df-icon-logout me-1"></i> Logout
+                    </button>
+                </form>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content p-3 p-md-4 p-lg-5">
+            {{if .PageTitle}}
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-2">
+                <div>
+                    <h1 class="h4 h3-md mb-1">{{.PageTitle}}</h1>
+                    {{if .PageDescription}}<p class="text-gray-600 mb-0 small">{{.PageDescription}}</p>{{end}}
+                </div>
+                {{if .PageActions}}
+                <div>{{.PageActions}}</div>
+                {{end}}
+            </div>
+            {{end}}
+
+            {{if eq .ActivePage "dashboard"}}{{template "dashboard_content" .}}
+            {{else if eq .ActivePage "link_form"}}{{template "link_form_content" .}}
+            {{else if eq .ActivePage "link_detail"}}{{template "link_detail_content" .}}
+            {{else if eq .ActivePage "links"}}{{template "links_content" .}}
+            {{else if eq .ActivePage "users"}}{{template "users_content" .}}
+            {{end}}
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1050;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="/static/js/app.js"></script>
+    <script>
+        // HTMX toast integration
+        document.body.addEventListener('htmx:afterRequest', function(evt) {
+            var xhr = evt.detail.xhr;
+            if (xhr) {
+                var successMsg = xhr.getResponseHeader('HX-Toast-Success');
+                if (successMsg) {
+                    showToast(successMsg, 'success');
+                }
+            }
+        });
+        document.body.addEventListener('htmx:responseError', function() {
+            showToast('An error occurred. Please try again.', 'error');
+        });
+        document.body.addEventListener('htmx:sendError', function() {
+            showToast('Network error. Please check your connection.', 'error');
+        });
+        // Reinitialize tooltips after HTMX swaps
+        document.body.addEventListener('htmx:afterSwap', function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function(el) { return new bootstrap.Tooltip(el); });
+        });
+    </script>
+</body>
+</html>

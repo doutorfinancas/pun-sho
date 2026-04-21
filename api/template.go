@@ -1,0 +1,126 @@
+package api
+
+import (
+	"encoding/json"
+	"fmt"
+	"html/template"
+	"net/http"
+	"path/filepath"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+)
+
+var templateLogger *zap.Logger
+
+var templates *template.Template
+
+func LoadTemplates(log *zap.Logger) (*template.Template, error) {
+	templateLogger = log
+
+	funcMap := template.FuncMap{
+		"json": func(v interface{}) template.JS {
+			b, _ := json.Marshal(v)
+			return template.JS(b)
+		},
+		"safeURL": func(s string) template.URL {
+			return template.URL(s)
+		},
+		"seq": func(n int) []int {
+			s := make([]int, n)
+			for i := range s {
+				s[i] = i + 1
+			}
+			return s
+		},
+		"subtract": func(a, b int) int { return a - b },
+		"add":      func(a, b int) int { return a + b },
+		"multiply": func(a, b int) int { return a * b },
+		"deref": func(v *int) int {
+			if v == nil {
+				return 0
+			}
+			return *v
+		},
+		"isExpired": func(t *time.Time) bool {
+			if t == nil {
+				return false
+			}
+			if t.Year() < 2 {
+				return false
+			}
+			return t.Before(time.Now())
+		},
+		"isExpiredYear": func(t *time.Time) bool {
+			if t == nil {
+				return true
+			}
+			return t.Year() < 2
+		},
+		"isLimitReached": func(limit *int, count int) bool {
+			if limit == nil {
+				return false
+			}
+			return *limit > 0 && count >= *limit
+		},
+		"formatDate": func(t *time.Time) string {
+			if t == nil {
+				return ""
+			}
+			return t.Format("Jan 02, 2006")
+		},
+		"formatDateTime": func(t *time.Time) string {
+			if t == nil {
+				return ""
+			}
+			return t.Format("Jan 02, 2006 15:04")
+		},
+	}
+
+	patterns := []string{
+		"templates/*.html",
+		"templates/**/*.html",
+		"templates/**/**/*.html",
+	}
+
+	tmpl := template.New("").Funcs(funcMap)
+
+	totalParsed := 0
+	for _, pattern := range patterns {
+		matches, err := filepath.Glob(pattern)
+		if err != nil {
+			log.Warn("Failed to glob templates", zap.String("pattern", pattern), zap.Error(err))
+			continue
+		}
+		for _, match := range matches {
+			_, err := tmpl.ParseFiles(match)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse template %s: %w", match, err)
+			}
+			totalParsed++
+		}
+	}
+
+	if totalParsed == 0 {
+		return nil, fmt.Errorf("no templates found in templates/ directory")
+	}
+
+	templates = tmpl
+	return tmpl, nil
+}
+
+func renderTemplate(c *gin.Context, name string, data interface{}) {
+	if templates == nil {
+		c.String(http.StatusInternalServerError, "Templates not loaded")
+		return
+	}
+
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	if err := templates.ExecuteTemplate(c.Writer, name, data); err != nil {
+		if templateLogger != nil {
+			templateLogger.Error("Template execution error", zap.String("template", name), zap.Error(err))
+		}
+		c.String(http.StatusInternalServerError, "Internal server error")
+	}
+}
