@@ -57,8 +57,9 @@ func (a *API) Run() {
 		a.log.Fatal("Failed to load templates", zap.Error(err))
 	}
 
-	// Static file serving
-	g.Static("/static", "./static")
+	// Static file serving (mounted under /app so production deployments
+	// that only expose /app/* can still reach CSS, JS, fonts and images).
+	g.Static("/app/static", "./static")
 
 	// Public redirect routes
 	a.PushHandlerWithGroup(NewURLHandler(a.config.UnknownPage, a.shortySvc), g.Group("/"))
