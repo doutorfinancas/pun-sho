@@ -96,7 +96,7 @@ func (a *API) Run() {
 		a.shortySvc,
 		a.analyticsSvc,
 		a.authSvc,
-		a.config.HostName,
+		a.shortySvc.GetHostName(),
 	)
 	a.PushHandlerWithGroup(frontendHandler, protectedGroup)
 

@@ -357,7 +357,7 @@ func (h *FrontendHandler) htmxDashboardRecent(c *gin.Context) {
 			<td><a href="/app/links/%s" class="text-decoration-none fw-semibold">%s</a></td>
 			<td class="truncate" style="max-width:200px;">%s</td>
 			<td class="text-end"><span class="fw-semibold">%d</span> clicks</td>
-		</tr>`, l.ID, shortLink, l.Link, l.Visits)
+		</tr>`, l.ID, htmlpkg.EscapeString(shortLink), htmlpkg.EscapeString(l.Link), l.Visits)
 	}
 	html += `</tbody></table></div>`
 

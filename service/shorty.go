@@ -299,26 +299,36 @@ func (s *ShortyService) FindShortyByID(id uuid.UUID, from, until string, showAcc
 			return nil, err
 		}
 
-		sh := s.FindAllAccessesByShortyIDAndDateRange(id, &fromTime, &untilTime)
-
 		if showAccesses {
+			sh := s.FindAllAccessesByShortyIDAndDateRange(id, &fromTime, &untilTime)
 			m.ShortyAccesses = sh
+			m.Visits = len(sh)
+			m.RedirectCount = CountRedirects(sh)
+		} else {
+			visits, redirects, err := s.shortyAccessRepository.CountByShortyIDAndDateRange(id, &fromTime, &untilTime)
+			if err != nil {
+				return nil, err
+			}
+			m.Visits = int(visits)
+			m.RedirectCount = int(redirects)
 		}
-
-		m.Visits = len(sh)
-		m.RedirectCount = CountRedirects(sh)
 
 		return m, nil
 	}
 
-	sh := s.FindAllAccessesByShortyID(id)
-
 	if showAccesses {
+		sh := s.FindAllAccessesByShortyID(id)
 		m.ShortyAccesses = sh
+		m.Visits = len(sh)
+		m.RedirectCount = CountRedirects(sh)
+	} else {
+		visits, redirects, err := s.shortyAccessRepository.CountByShortyID(id)
+		if err != nil {
+			return nil, err
+		}
+		m.Visits = int(visits)
+		m.RedirectCount = int(redirects)
 	}
-
-	m.Visits = len(sh)
-	m.RedirectCount = CountRedirects(sh)
 
 	return m, nil
 }
