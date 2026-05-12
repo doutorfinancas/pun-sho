@@ -546,7 +546,10 @@ func (h *FrontendHandler) htmxLinkGeo(c *gin.Context) {
 
 	html := `<table class="table table-sm"><thead><tr><th>Country</th><th>City</th><th class="text-end">Clicks</th></tr></thead><tbody>`
 	for _, item := range items {
-		html += fmt.Sprintf(`<tr><td>%s</td><td>%s</td><td class="text-end fw-semibold">%d</td></tr>`, item.Country, item.City, item.Count)
+		html += fmt.Sprintf(
+			`<tr><td>%s</td><td>%s</td><td class="text-end fw-semibold">%d</td></tr>`,
+			htmlpkg.EscapeString(item.Country), htmlpkg.EscapeString(item.City), item.Count,
+		)
 	}
 	html += `</tbody></table>`
 
@@ -583,8 +586,16 @@ func (h *FrontendHandler) htmxLinkVisits(c *gin.Context) {
 		if a.CreatedAt != nil {
 			created = a.CreatedAt.Format("Jan 02 15:04")
 		}
-		html += fmt.Sprintf(`<tr><td class="small">%s</td><td class="small">%s</td><td class="small">%s</td><td class="small">%s</td><td><span class="status-badge %s">%s</span></td><td class="small">%s</td></tr>`,
-			created, a.IPAddress, a.Browser, a.OperatingSystem, statusClass, a.Status, a.Country)
+		html += fmt.Sprintf(
+			`<tr><td class="small">%s</td><td class="small">%s</td><td class="small">%s</td><td class="small">%s</td><td><span class="status-badge %s">%s</span></td><td class="small">%s</td></tr>`,
+			created,
+			htmlpkg.EscapeString(a.IPAddress),
+			htmlpkg.EscapeString(a.Browser),
+			htmlpkg.EscapeString(a.OperatingSystem),
+			statusClass,
+			htmlpkg.EscapeString(a.Status),
+			htmlpkg.EscapeString(a.Country),
+		)
 	}
 	html += `</tbody></table></div>`
 
