@@ -288,30 +288,17 @@ func (s *ShortyService) FindShortyByID(id uuid.UUID, from, until string, showAcc
 		return nil, err
 	}
 
-	if from != "" && until != "" {
-		fromTime, err := time.Parse(time.DateOnly, from)
-		if err != nil {
-			return nil, err
-		}
-
-		untilTime, err := time.Parse(time.DateTime, until+" 23:59:59")
-		if err != nil {
-			return nil, err
-		}
-
-		sh := s.FindAllAccessesByShortyIDAndDateRange(id, &fromTime, &untilTime)
-
-		if showAccesses {
-			m.ShortyAccesses = sh
-		}
-
-		m.Visits = len(sh)
-		m.RedirectCount = CountRedirects(sh)
-
-		return m, nil
+	fromTime, untilTime, err := ParseDateRange(from, until)
+	if err != nil {
+		return nil, err
 	}
 
-	sh := s.FindAllAccessesByShortyID(id)
+	var sh []entity.ShortyAccess
+	if fromTime != nil && untilTime != nil {
+		sh = s.FindAllAccessesByShortyIDAndDateRange(id, fromTime, untilTime)
+	} else {
+		sh = s.FindAllAccessesByShortyID(id)
+	}
 
 	if showAccesses {
 		m.ShortyAccesses = sh

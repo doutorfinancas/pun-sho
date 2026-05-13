@@ -561,7 +561,18 @@ func (h *FrontendHandler) htmxLinkVisits(c *gin.Context) {
 		return
 	}
 
-	accesses := h.shortySvc.FindAllAccessesByShortyID(id)
+	from, until, err := service.ParseDateRange(c.Query("from"), c.Query("until"))
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	var accesses []entity.ShortyAccess
+	if from != nil && until != nil {
+		accesses = h.shortySvc.FindAllAccessesByShortyIDAndDateRange(id, from, until)
+	} else {
+		accesses = h.shortySvc.FindAllAccessesByShortyID(id)
+	}
 
 	if len(accesses) == 0 {
 		c.String(http.StatusOK, `<p class="text-gray-500 text-center">No visits recorded</p>`)
