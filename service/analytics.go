@@ -1,6 +1,7 @@
 package service
 
 import (
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -237,32 +238,52 @@ func (s *AnalyticsService) LabelRanking(from, until time.Time, limit int) []Labe
 }
 
 func (s *AnalyticsService) GlobalSummary(from, until time.Time) GlobalStats {
-	var stats GlobalStats
-
-	if err := s.db.Orm.Raw(`SELECT COUNT(*) FROM shorties WHERE deleted_at IS NULL`).Scan(&stats.TotalLinks).Error; err != nil {
-		s.log.Error("GlobalSummary TotalLinks query failed", zap.Error(err))
+	// Counts are independent — run them in parallel so the dashboard doesn't
+	// hang on the slowest one (on large tables each COUNT can take seconds).
+	type countResult struct {
+		Count int64 `gorm:"count"`
 	}
 
-	if err := s.db.Orm.Raw(`
-		SELECT COUNT(*) FROM shorty_accesses
-		WHERE created_at BETWEEN ? AND ?
-		AND status = 'redirected'`, from, until).Scan(&stats.TotalClicks).Error; err != nil {
-		s.log.Error("GlobalSummary TotalClicks query failed", zap.Error(err))
+	runCount := func(query string, args ...interface{}) int64 {
+		var r countResult
+		if err := s.db.Orm.Raw(query, args...).Scan(&r).Error; err != nil {
+			s.log.Error("GlobalSummary count query failed", zap.String("query", query), zap.Error(err))
+		}
+		return r.Count
 	}
 
-	if err := s.db.Orm.Raw(`
-		SELECT COUNT(*) FROM shorties
-		WHERE deleted_at IS NULL
-		AND (ttl IS NULL OR ttl > NOW())`).Scan(&stats.ActiveLinks).Error; err != nil {
-		s.log.Error("GlobalSummary ActiveLinks query failed", zap.Error(err))
-	}
+	var (
+		stats GlobalStats
+		wg    sync.WaitGroup
+	)
 
-	if err := s.db.Orm.Raw(`
-		SELECT COUNT(*) FROM shorties
-		WHERE deleted_at IS NULL
-		AND ttl IS NOT NULL AND ttl <= NOW()`).Scan(&stats.ExpiredLinks).Error; err != nil {
-		s.log.Error("GlobalSummary ExpiredLinks query failed", zap.Error(err))
-	}
+	wg.Add(4)
+	go func() {
+		defer wg.Done()
+		stats.TotalLinks = runCount(`SELECT COUNT(*) AS count FROM shorties WHERE deleted_at IS NULL`)
+	}()
+	go func() {
+		defer wg.Done()
+		stats.TotalClicks = runCount(`
+			SELECT COUNT(*) AS count FROM shorty_accesses
+			WHERE created_at BETWEEN ? AND ?
+			AND status = 'redirected'`, from, until)
+	}()
+	go func() {
+		defer wg.Done()
+		stats.ActiveLinks = runCount(`
+			SELECT COUNT(*) AS count FROM shorties
+			WHERE deleted_at IS NULL
+			AND (ttl IS NULL OR ttl > NOW())`)
+	}()
+	go func() {
+		defer wg.Done()
+		stats.ExpiredLinks = runCount(`
+			SELECT COUNT(*) AS count FROM shorties
+			WHERE deleted_at IS NULL
+			AND ttl IS NOT NULL AND ttl <= NOW()`)
+	}()
+	wg.Wait()
 
 	return stats
 }
