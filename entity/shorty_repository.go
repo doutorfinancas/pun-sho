@@ -48,52 +48,50 @@ func (r *ShortyRepository) ListWithAccessData(
 ) ([]*ShortyForList, error) {
 	rows := make([]*ShortyForList, 0)
 
-	fields := []string{
-		"s.id",
-		"s.created_at",
-		"s.deleted_at",
-		"s.public_id",
-		"s.link",
-		"s.ttl",
-		"s.redirection_limit",
-		"s.labels",
+	pageFields := []string{
+		"id",
+		"created_at",
+		"deleted_at",
+		"public_id",
+		"link",
+		"ttl",
+		"redirection_limit",
+		"labels",
 	}
-
 	if listWithQRCode {
-		fields = append(fields, "qr_code")
+		pageFields = append(pageFields, "qr_code")
 	}
+	pageFieldList := strings.Join(pageFields, ", ")
 
-	fieldlist := strings.Join(fields, ", ")
-
-	baseQuery := fmt.Sprintf(
-		`SELECT %s, count(sa.id) as visits, COALESCE(sum(CASE WHEN sa.status = 'redirected' THEN 1 ELSE 0 END), 0) as redirects FROM shorties s
-    LEFT JOIN shorty_accesses sa
-        ON s.id = sa.shorty_id`, fieldlist)
+	selectFields := make([]string, 0, len(pageFields))
+	for _, f := range pageFields {
+		selectFields = append(selectFields, "p."+f)
+	}
+	selectFieldList := strings.Join(selectFields, ", ")
 
 	var conditions []string
 	var args []interface{}
 
 	if len(labels) > 0 {
-		conditions = append(conditions, "s.labels && ?")
+		conditions = append(conditions, "labels && ?")
 		args = append(args, fmt.Sprintf("{%s}", strings.Join(labels, ",")))
 	}
 
 	switch status {
 	case "active":
-		conditions = append(conditions, "s.deleted_at IS NULL AND (s.ttl IS NULL OR s.ttl > NOW())")
+		conditions = append(conditions, "deleted_at IS NULL AND (ttl IS NULL OR ttl > NOW())")
 	case "expired":
-		conditions = append(conditions, "s.deleted_at IS NULL AND s.ttl IS NOT NULL AND s.ttl <= NOW() AND s.ttl > '0002-01-01'")
+		conditions = append(conditions, "deleted_at IS NULL AND ttl IS NOT NULL AND ttl <= NOW() AND ttl > '0002-01-01'")
 	case "deleted":
-		conditions = append(conditions, "s.deleted_at IS NOT NULL")
+		conditions = append(conditions, "deleted_at IS NOT NULL")
 	}
 
 	if from != nil {
-		conditions = append(conditions, "s.created_at >= ?")
+		conditions = append(conditions, "created_at >= ?")
 		args = append(args, *from)
 	}
-
 	if to != nil {
-		conditions = append(conditions, "s.created_at <= ?")
+		conditions = append(conditions, "created_at <= ?")
 		args = append(args, *to)
 	}
 
@@ -102,9 +100,30 @@ func (r *ShortyRepository) ListWithAccessData(
 		whereClause = " WHERE " + strings.Join(conditions, " AND ")
 	}
 
-	groupByClause := " GROUP BY s.id, s.created_at, s.deleted_at, s.public_id, s.link, s.qr_code, s.ttl, s.redirection_limit, s.labels LIMIT ? OFFSET ?"
+	// Pick the page of shorties FIRST (cheap with the new partial indexes),
+	// then aggregate accesses for those rows only. Prior implementation did a
+	// LEFT JOIN + GROUP BY across the full table, which is O(rows) and
+	// catastrophic on a 6M-row table.
+	groupBy := make([]string, 0, len(pageFields))
+	for _, f := range pageFields {
+		groupBy = append(groupBy, "p."+f)
+	}
 
-	query := baseQuery + whereClause + groupByClause
+	query := fmt.Sprintf(`
+		WITH page AS (
+			SELECT %s FROM shorties%s
+			ORDER BY created_at DESC
+			LIMIT ? OFFSET ?
+		)
+		SELECT %s,
+			COALESCE(COUNT(sa.id), 0) AS visits,
+			COALESCE(SUM(CASE WHEN sa.status = 'redirected' THEN 1 ELSE 0 END), 0) AS redirects
+		FROM page p
+		LEFT JOIN shorty_accesses sa ON sa.shorty_id = p.id
+		GROUP BY %s
+		ORDER BY p.created_at DESC`,
+		pageFieldList, whereClause, selectFieldList, strings.Join(groupBy, ", "))
+
 	args = append(args, limit, offset)
 
 	if err := r.Database.Orm.Raw(query, args...).Scan(&rows).Error; err != nil {
@@ -113,6 +132,7 @@ func (r *ShortyRepository) ListWithAccessData(
 
 	return rows, nil
 }
+
 
 func (r *ShortyRepository) DistinctLabels() ([]string, error) {
 	var labels []string

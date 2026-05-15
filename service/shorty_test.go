@@ -384,17 +384,19 @@ func TestShortyService_ListWithLabels(t *testing.T) {
 				},
 			)
 
+			// Match the CTE-then-aggregate query introduced for performance.
+			// The regex is permissive on whitespace/columns; key assertions are
+			// the CTE wrapper, the LEFT JOIN, the ORDER BY in both layers, and
+			// the bind arg positions.
 			if len(tt.args.labels) > 0 {
-				expectedQuery := `SELECT s.id, s.created_at, s.deleted_at, s.public_id, s.link, s.ttl, s.redirection_limit, s.labels, count(sa.id) as visits, COALESCE(sum(CASE WHEN sa.status = 'redirected' THEN 1 ELSE 0 END), 0) as redirects FROM shorties s
-    LEFT JOIN shorty_accesses sa
-        ON s.id = sa.shorty_id WHERE s.labels && $1 GROUP BY s.id, s.created_at, s.deleted_at, s.public_id, s.link, s.qr_code, s.ttl, s.redirection_limit, s.labels LIMIT $2 OFFSET $3`
 				labelsArg := formatLabelArray(tt.args.labels)
-				mock.ExpectQuery(regexp.QuoteMeta(expectedQuery)).WithArgs(labelsArg, tt.args.limit, tt.args.offset).WillReturnRows(mockRows)
+				mock.ExpectQuery(`WITH page AS \(.*FROM shorties WHERE labels && \$1.*ORDER BY created_at DESC.*LIMIT \$2 OFFSET \$3.*\).*LEFT JOIN shorty_accesses sa ON sa\.shorty_id = p\.id.*ORDER BY p\.created_at DESC`).
+					WithArgs(labelsArg, tt.args.limit, tt.args.offset).
+					WillReturnRows(mockRows)
 			} else {
-				expectedQuery := `SELECT s.id, s.created_at, s.deleted_at, s.public_id, s.link, s.ttl, s.redirection_limit, s.labels, count(sa.id) as visits, COALESCE(sum(CASE WHEN sa.status = 'redirected' THEN 1 ELSE 0 END), 0) as redirects FROM shorties s
-    LEFT JOIN shorty_accesses sa
-        ON s.id = sa.shorty_id GROUP BY s.id, s.created_at, s.deleted_at, s.public_id, s.link, s.qr_code, s.ttl, s.redirection_limit, s.labels LIMIT $1 OFFSET $2`
-				mock.ExpectQuery(regexp.QuoteMeta(expectedQuery)).WithArgs(tt.args.limit, tt.args.offset).WillReturnRows(mockRows)
+				mock.ExpectQuery(`WITH page AS \(.*FROM shorties.*ORDER BY created_at DESC.*LIMIT \$1 OFFSET \$2.*\).*LEFT JOIN shorty_accesses sa ON sa\.shorty_id = p\.id.*ORDER BY p\.created_at DESC`).
+					WithArgs(tt.args.limit, tt.args.offset).
+					WillReturnRows(mockRows)
 			}
 
 			s := &ShortyService{

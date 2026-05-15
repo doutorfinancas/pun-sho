@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -60,7 +61,17 @@ type ShortyService struct {
 	geoSvc                 *GeoIPService
 	publicIDLength         int
 	allowedSocialBots      []string
+
+	labelsMu     sync.Mutex
+	labelsCache  []string
+	labelsExpiry time.Time
 }
+
+// allLabelsCacheTTL is how long the distinct-labels list is cached. The
+// underlying query (`SELECT DISTINCT unnest(labels) FROM shorties`) is a
+// full table scan, but the result is only used to populate a filter
+// dropdown — slightly stale is fine.
+const allLabelsCacheTTL = 60 * time.Second
 
 func NewShortyService(
 	log *zap.Logger,
@@ -276,7 +287,25 @@ func (s *ShortyService) List(withQR bool, labels []string, status string, from, 
 }
 
 func (s *ShortyService) AllLabels() ([]string, error) {
-	return s.shortyRepository.DistinctLabels()
+	s.labelsMu.Lock()
+	if s.labelsCache != nil && time.Now().Before(s.labelsExpiry) {
+		cached := s.labelsCache
+		s.labelsMu.Unlock()
+		return cached, nil
+	}
+	s.labelsMu.Unlock()
+
+	labels, err := s.shortyRepository.DistinctLabels()
+	if err != nil {
+		return nil, err
+	}
+
+	s.labelsMu.Lock()
+	s.labelsCache = labels
+	s.labelsExpiry = time.Now().Add(allLabelsCacheTTL)
+	s.labelsMu.Unlock()
+
+	return labels, nil
 }
 
 func (s *ShortyService) FindShortyByID(id uuid.UUID, from, until string, showAccesses bool) (*entity.Shorty, error) {
@@ -288,24 +317,47 @@ func (s *ShortyService) FindShortyByID(id uuid.UUID, from, until string, showAcc
 		return nil, err
 	}
 
-	fromTime, untilTime, err := ParseDateRange(from, until)
-	if err != nil {
-		return nil, err
-	}
+	if from != "" && until != "" {
+		fromTime, err := time.Parse(time.DateOnly, from)
+		if err != nil {
+			return nil, err
+		}
 
-	var sh []entity.ShortyAccess
-	if fromTime != nil && untilTime != nil {
-		sh = s.FindAllAccessesByShortyIDAndDateRange(id, fromTime, untilTime)
-	} else {
-		sh = s.FindAllAccessesByShortyID(id)
+		untilTime, err := time.Parse(time.DateTime, until+" 23:59:59")
+		if err != nil {
+			return nil, err
+		}
+
+		if showAccesses {
+			sh := s.FindAllAccessesByShortyIDAndDateRange(id, &fromTime, &untilTime)
+			m.ShortyAccesses = sh
+			m.Visits = len(sh)
+			m.RedirectCount = CountRedirects(sh)
+		} else {
+			visits, redirects, err := s.shortyAccessRepository.CountByShortyIDAndDateRange(id, &fromTime, &untilTime)
+			if err != nil {
+				return nil, err
+			}
+			m.Visits = int(visits)
+			m.RedirectCount = int(redirects)
+		}
+
+		return m, nil
 	}
 
 	if showAccesses {
+		sh := s.FindAllAccessesByShortyID(id)
 		m.ShortyAccesses = sh
+		m.Visits = len(sh)
+		m.RedirectCount = CountRedirects(sh)
+	} else {
+		visits, redirects, err := s.shortyAccessRepository.CountByShortyID(id)
+		if err != nil {
+			return nil, err
+		}
+		m.Visits = int(visits)
+		m.RedirectCount = int(redirects)
 	}
-
-	m.Visits = len(sh)
-	m.RedirectCount = CountRedirects(sh)
 
 	return m, nil
 }
