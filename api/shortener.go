@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -15,17 +16,20 @@ import (
 )
 
 type shortenerHandler struct {
-	shortySvc *service.ShortyService
+	shortySvc    *service.ShortyService
+	analyticsSvc *service.AnalyticsService
 }
 
-func NewShortenerHandler(shortySvc *service.ShortyService) HTTPHandler {
+func NewShortenerHandler(shortySvc *service.ShortyService, analyticsSvc *service.AnalyticsService) HTTPHandler {
 	return &shortenerHandler{
-		shortySvc: shortySvc,
+		shortySvc:    shortySvc,
+		analyticsSvc: analyticsSvc,
 	}
 }
 
 func (h *shortenerHandler) Routes(rg *gin.RouterGroup) {
 	rg.GET("/:id", h.GetLinkInformation)
+	rg.GET("/:id/stats", h.GetLinkStats)
 	rg.GET("", h.ListLinks)
 	rg.POST("", h.CreateLink)
 	rg.PATCH("/:id", h.EditLink)
@@ -74,11 +78,71 @@ func (h *shortenerHandler) GetLinkInformation(c *gin.Context) {
 	}
 	shorty, err := h.shortySvc.FindShortyByID(parsed, from, until, showAccesses)
 	if err != nil {
-		c.JSON(http.StatusNotFound, "shorty not found")
+		var valErr *service.ValidationError
+		if errors.As(err, &valErr) {
+			c.JSON(http.StatusBadRequest, response.NewFailure(valErr.Error()))
+			return
+		}
+		c.JSON(http.StatusNotFound, response.NewFailure("shorty not found"))
 		return
 	}
 
 	c.JSON(http.StatusOK, shorty)
+}
+
+// GetLinkStats godoc
+// @Tags Short
+// @Summary Get visit statistics grouped by period
+// @Schemes
+// @Description Returns visits for a shortlink grouped by period (day/week/month/year) for the given date range
+// @Param token header string false "Authorization token"
+// @Param id path string true "ShortLink ID"
+// @Param from query string true "start date 'YYYY-MM-DD'"
+// @Param until query string true "end date 'YYYY-MM-DD'"
+// @Param granularity query string false "grouping: 'auto' or 'day' (default: auto)"
+// @Success 200 {object} service.VisitStatsResponse "response"
+// @Failure 400 {object} response.FailureResponse "error"
+// @Failure 404 {object} response.FailureResponse "not found"
+// @Router /short/{id}/stats [get]
+func (h *shortenerHandler) GetLinkStats(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, response.NewFailure("invalid id"))
+		return
+	}
+
+	fromStr := c.Query("from")
+	untilStr := c.Query("until")
+
+	if fromStr == "" || untilStr == "" {
+		c.JSON(http.StatusBadRequest, response.NewFailure("from and until are required"))
+		return
+	}
+
+	from, until, err := service.ParseDateRange(fromStr, untilStr)
+	if err != nil {
+		var valErr *service.ValidationError
+		if errors.As(err, &valErr) {
+			c.JSON(http.StatusBadRequest, response.NewFailure(valErr.Error()))
+			return
+		}
+		c.JSON(http.StatusBadRequest, response.NewFailure("invalid date parameters"))
+		return
+	}
+
+	granularity, err := service.ParseGranularity(c.Query("granularity"))
+	if err != nil {
+		var valErr *service.ValidationError
+		if errors.As(err, &valErr) {
+			c.JSON(http.StatusBadRequest, response.NewFailure(valErr.Error()))
+			return
+		}
+		c.JSON(http.StatusBadRequest, response.NewFailure("invalid granularity"))
+		return
+	}
+
+	result := h.analyticsSvc.VisitsByPeriod(id, *from, *until, granularity)
+	c.JSON(http.StatusOK, result)
 }
 
 // ListLinks godoc

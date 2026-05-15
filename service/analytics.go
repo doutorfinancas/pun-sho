@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -245,6 +246,50 @@ func (s *AnalyticsService) LabelRanking(from, until time.Time, limit int) []Labe
 	}
 
 	return items
+}
+
+func (s *AnalyticsService) VisitsByPeriod(shortyID uuid.UUID, from, until time.Time, granularity string) VisitStatsResponse {
+	effective := ResolveGranularity(from, until, granularity)
+
+	var periodExpr string
+	switch effective {
+	case GranularityDay:
+		periodExpr = "TO_CHAR(created_at, 'YYYY-MM-DD')"
+	case GranularityWeek:
+		periodExpr = "TO_CHAR(DATE_TRUNC('week', created_at), 'YYYY-MM-DD')"
+	case GranularityMonth:
+		periodExpr = "TO_CHAR(DATE_TRUNC('month', created_at), 'YYYY-MM-DD')"
+	case GranularityYear:
+		periodExpr = "TO_CHAR(DATE_TRUNC('year', created_at), 'YYYY-MM-DD')"
+	}
+
+	query := fmt.Sprintf(`
+		SELECT %s as period, COUNT(*) as visits
+		FROM shorty_accesses
+		WHERE shorty_id = ?
+		AND created_at BETWEEN ? AND ?
+		GROUP BY period`, periodExpr)
+
+	var rows []struct {
+		Period  string `gorm:"column:period"`
+		Visits  int64  `gorm:"column:visits"`
+	}
+	if err := s.db.Orm.Raw(query, shortyID, from, until).Scan(&rows).Error; err != nil {
+		s.log.Error("VisitsByPeriod query failed", zap.Error(err))
+	}
+
+	dbData := make(map[string]int64, len(rows))
+	for _, r := range rows {
+		dbData[r.Period] = r.Visits
+	}
+
+	periods := generatePeriods(from, until, effective)
+	result := make(VisitStatsResponse, len(periods))
+	for _, p := range periods {
+		result[p] = VisitStatsPeriod{Date: p, Visits: dbData[p]}
+	}
+
+	return result
 }
 
 func (s *AnalyticsService) GlobalSummary(from, until time.Time) GlobalStats {

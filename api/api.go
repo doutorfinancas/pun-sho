@@ -68,7 +68,7 @@ func (a *API) Run() {
 	authMiddleware := NewAuthenticationMiddleware(a.config.Token)
 	apiGroup := g.Group("/api/v1")
 	apiGroup.Use(authMiddleware.Authenticated)
-	a.PushHandlerWithGroup(NewShortenerHandler(a.shortySvc), apiGroup)
+	a.PushHandlerWithGroup(NewShortenerHandler(a.shortySvc, a.analyticsSvc), apiGroup)
 	a.PushHandlerWithGroup(NewPreviewHandler(a.qrSvc), apiGroup)
 
 	// App routes (session auth)
