@@ -322,6 +322,70 @@
                     }
                 }
             }
+        },
+        "/short/{id}/stats": {
+            "get": {
+                "description": "Returns visits for a shortlink grouped by period (day/week/month/year) for the given date range",
+                "tags": [
+                    "Short"
+                ],
+                "summary": "Get visit statistics grouped by period",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "token",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "ShortLink ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "start date 'YYYY-MM-DD'",
+                        "name": "from",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "end date 'YYYY-MM-DD'",
+                        "name": "until",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "grouping: 'auto' or 'day' (default: auto)",
+                        "name": "granularity",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "response",
+                        "schema": {
+                            "$ref": "#/definitions/service.VisitStatsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "error",
+                        "schema": {
+                            "$ref": "#/definitions/response.FailureResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.FailureResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -403,6 +467,12 @@
                 "browser": {
                     "type": "string"
                 },
+                "city": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -449,6 +519,12 @@
                 },
                 "redirection_limit": {
                     "type": "integer"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "utm": {
+                    "$ref": "#/definitions/request.UTMParams"
                 }
             }
         },
@@ -494,6 +570,26 @@
                 }
             }
         },
+        "request.UTMParams": {
+            "type": "object",
+            "properties": {
+                "utm_campaign": {
+                    "type": "string"
+                },
+                "utm_content": {
+                    "type": "string"
+                },
+                "utm_medium": {
+                    "type": "string"
+                },
+                "utm_source": {
+                    "type": "string"
+                },
+                "utm_term": {
+                    "type": "string"
+                }
+            }
+        },
         "request.UpdateShorty": {
             "type": "object",
             "properties": {
@@ -514,6 +610,9 @@
                 },
                 "redirection_limit": {
                     "type": "integer"
+                },
+                "utm": {
+                    "$ref": "#/definitions/request.UTMParams"
                 }
             }
         },
@@ -546,6 +645,23 @@
                 "status": {
                     "type": "string"
                 }
+            }
+        },
+        "service.VisitStatsPeriod": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "visits": {
+                    "type": "integer"
+                }
+            }
+        },
+        "service.VisitStatsResponse": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/service.VisitStatsPeriod"
             }
         }
     }

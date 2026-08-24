@@ -51,6 +51,10 @@ definitions:
     properties:
       browser:
         type: string
+      city:
+        type: string
+      country:
+        type: string
       created_at:
         type: string
       extra:
@@ -82,6 +86,10 @@ definitions:
         $ref: '#/definitions/request.QRCode'
       redirection_limit:
         type: integer
+      slug:
+        type: string
+      utm:
+        $ref: '#/definitions/request.UTMParams'
     type: object
   request.GeneratePreview:
     properties:
@@ -111,6 +119,19 @@ definitions:
       width:
         type: integer
     type: object
+  request.UTMParams:
+    properties:
+      utm_campaign:
+        type: string
+      utm_content:
+        type: string
+      utm_medium:
+        type: string
+      utm_source:
+        type: string
+      utm_term:
+        type: string
+    type: object
   request.UpdateShorty:
     properties:
       TTL:
@@ -125,6 +146,8 @@ definitions:
         type: string
       redirection_limit:
         type: integer
+      utm:
+        $ref: '#/definitions/request.UTMParams'
     type: object
   response.FailureResponse:
     properties:
@@ -145,6 +168,17 @@ definitions:
         type: string
       status:
         type: string
+    type: object
+  service.VisitStatsPeriod:
+    properties:
+      date:
+        type: string
+      visits:
+        type: integer
+    type: object
+  service.VisitStatsResponse:
+    additionalProperties:
+      $ref: '#/definitions/service.VisitStatsPeriod'
     type: object
 info:
   contact: {}
@@ -360,6 +394,50 @@ paths:
           schema:
             $ref: '#/definitions/response.FailureResponse'
       summary: Edits a shortlink
+      tags:
+      - Short
+  /short/{id}/stats:
+    get:
+      description: Returns visits for a shortlink grouped by period (day/week/month/year)
+        for the given date range
+      parameters:
+      - description: Authorization token
+        in: header
+        name: token
+        type: string
+      - description: ShortLink ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: start date 'YYYY-MM-DD'
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: end date 'YYYY-MM-DD'
+        in: query
+        name: until
+        required: true
+        type: string
+      - description: 'grouping: ''auto'' or ''day'' (default: auto)'
+        in: query
+        name: granularity
+        type: string
+      responses:
+        "200":
+          description: response
+          schema:
+            $ref: '#/definitions/service.VisitStatsResponse'
+        "400":
+          description: error
+          schema:
+            $ref: '#/definitions/response.FailureResponse'
+        "404":
+          description: not found
+          schema:
+            $ref: '#/definitions/response.FailureResponse'
+      summary: Get visit statistics grouped by period
       tags:
       - Short
 swagger: "2.0"
