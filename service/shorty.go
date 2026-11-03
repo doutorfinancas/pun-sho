@@ -237,10 +237,12 @@ func (s *ShortyService) CreateVisit(publicID string, req *request.Redirect) (*en
 		status = StatusExpired
 	}
 
-	accessList := s.FindAllAccessesByShortyID(sh.ID)
-	redirectCount := CountRedirects(accessList)
 	if sh.RedirectionLimit != nil && *sh.RedirectionLimit != 0 {
-		if redirectCount >= *sh.RedirectionLimit {
+		redirectCount, err := s.shortyAccessRepository.CountRedirectsByShortyID(sh.ID)
+		if err != nil {
+			return nil, err
+		}
+		if redirectCount >= int64(*sh.RedirectionLimit) {
 			status = StatusLimitReached
 		}
 	}
