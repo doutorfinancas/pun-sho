@@ -1,6 +1,8 @@
 package entity
 
 import (
+	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -46,6 +48,44 @@ func (r *ShortyAccessRepository) CountRedirectsByShortyID(id uuid.UUID) (int64, 
 		Where("shorty_id = ? AND status = ?", id, "redirected").
 		Count(&count).Error
 	return count, err
+}
+
+// ShortyVisitCount holds lifetime totals for one link.
+type ShortyVisitCount struct {
+	ID        uuid.UUID `json:"id" gorm:"column:id"`
+	Visits    int64     `json:"visits" gorm:"column:visits"`
+	Redirects int64     `json:"redirects" gorm:"column:redirects"`
+}
+
+// VisitCountsSince returns lifetime totals only for links visited at or after since.
+// The CTE and per-link lookups keep the cost proportional to recently visited links, not to the table or label size.
+func (r *ShortyAccessRepository) VisitCountsSince(
+	ctx context.Context, labels []string, since time.Time,
+) ([]ShortyVisitCount, error) {
+	labelFilter := ""
+	args := []interface{}{since}
+	if len(labels) > 0 {
+		labelFilter = "WHERE (SELECT s.labels FROM shorties s WHERE s.id = r.shorty_id) && ?"
+		args = append(args, labelsArrayLiteral(labels))
+	}
+
+	rows := make([]ShortyVisitCount, 0)
+	err := r.Database.Orm.WithContext(ctx).Raw(fmt.Sprintf(`
+		WITH recent AS MATERIALIZED (
+			SELECT DISTINCT shorty_id FROM shorty_accesses WHERE created_at >= ?
+		)
+		SELECT r.shorty_id AS id, c.visits, c.redirects
+		FROM recent r
+		CROSS JOIN LATERAL (
+			SELECT COUNT(*) AS visits,
+			       COALESCE(SUM(CASE WHEN sa.status = 'redirected' THEN 1 ELSE 0 END), 0) AS redirects
+			FROM shorty_accesses sa
+			WHERE sa.shorty_id = r.shorty_id
+		) c
+		%s
+		ORDER BY r.shorty_id`, labelFilter), args...).Scan(&rows).Error
+
+	return rows, err
 }
 
 // CountByShortyIDAndDateRange is the date-bounded equivalent of CountByShortyID.

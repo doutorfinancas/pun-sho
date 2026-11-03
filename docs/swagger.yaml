@@ -72,6 +72,15 @@ definitions:
       user_agent:
         type: string
     type: object
+  entity.ShortyVisitCount:
+    properties:
+      id:
+        type: string
+      redirects:
+        type: integer
+      visits:
+        type: integer
+    type: object
   request.CreateShorty:
     properties:
       TTL:
@@ -438,6 +447,47 @@ paths:
           schema:
             $ref: '#/definitions/response.FailureResponse'
       summary: Get visit statistics grouped by period
+      tags:
+      - Short
+  /short/visits:
+    get:
+      description: Returns lifetime visit and redirect totals, only for links with
+        at least one visit at or after `since` (at most 90 days ago). Use it to sync
+        counts incrementally instead of paging the whole list; overlap windows between
+        polls (e.g. last poll minus a margin) because a visit committed just after
+        a poll keeps an earlier created_at.
+      parameters:
+      - description: Authorization token
+        in: header
+        name: token
+        type: string
+      - description: RFC3339 timestamp, e.g. 2026-11-02T00:00:00Z
+        in: query
+        name: since
+        required: true
+        type: string
+      - description: comma separated labels; matches links with any of them
+        in: query
+        name: labels
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response
+          schema:
+            items:
+              $ref: '#/definitions/entity.ShortyVisitCount'
+            type: array
+        "400":
+          description: error
+          schema:
+            $ref: '#/definitions/response.FailureResponse'
+        "500":
+          description: error
+          schema:
+            $ref: '#/definitions/response.FailureResponse'
+      summary: Visit totals for links visited since a timestamp
       tags:
       - Short
 swagger: "2.0"

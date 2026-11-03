@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/doutorfinancas/pun-sho/api/response"
 	"github.com/gin-gonic/gin"
@@ -31,6 +32,7 @@ func (h *shortenerHandler) Routes(rg *gin.RouterGroup) {
 	rg.GET("/:id", h.GetLinkInformation)
 	rg.GET("/:id/stats", h.GetLinkStats)
 	rg.GET("", h.ListLinks)
+	rg.GET("/visits", h.ListVisitCountsSince)
 	rg.POST("", h.CreateLink)
 	rg.PATCH("/:id", h.EditLink)
 	rg.DELETE("/:id", h.RemoveLink)
@@ -177,7 +179,7 @@ func (h *shortenerHandler) ListLinks(c *gin.Context) {
 
 	labels := parseLabelsParam(labelsStr)
 
-	links, err := h.shortySvc.List(withQR, labels, "", nil, nil, limit, offset)
+	links, err := h.shortySvc.List(c.Request.Context(), withQR, labels, "", nil, nil, limit, offset)
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
@@ -187,6 +189,46 @@ func (h *shortenerHandler) ListLinks(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, links)
+}
+
+// ListVisitCountsSince godoc
+// @Tags Short
+// @Summary Visit totals for links visited since a timestamp
+// @Schemes
+// @Description Returns lifetime visit and redirect totals, only for links with at least one visit at or after `since` (at most 90 days ago). Use it to sync counts incrementally instead of paging the whole list; overlap windows between polls (e.g. last poll minus a margin) because a visit committed just after a poll keeps an earlier created_at.
+// @Param token header string false "Authorization token"
+// @Param since query string true "RFC3339 timestamp, e.g. 2026-11-02T00:00:00Z"
+// @Param labels query string false "comma separated labels; matches links with any of them"
+// @Produce json
+// @Success 200 {array} entity.ShortyVisitCount "response"
+// @Failure 400 {object} response.FailureResponse "error"
+// @Failure 500 {object} response.FailureResponse "error"
+// @Router /short/visits [get]
+func (h *shortenerHandler) ListVisitCountsSince(c *gin.Context) {
+	sinceStr := c.Query("since")
+	if sinceStr == "" {
+		c.JSON(http.StatusBadRequest, response.NewFailure("since is required"))
+		return
+	}
+
+	since, err := time.Parse(time.RFC3339, sinceStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, response.NewFailure("since must be an RFC3339 timestamp"))
+		return
+	}
+
+	counts, err := h.shortySvc.VisitCountsSince(c.Request.Context(), parseLabelsParam(c.Query("labels")), since)
+	if err != nil {
+		var valErr *service.ValidationError
+		if errors.As(err, &valErr) {
+			c.JSON(http.StatusBadRequest, response.NewFailure(valErr.Error()))
+			return
+		}
+		c.JSON(http.StatusInternalServerError, response.NewFailure("could not load visit counts"))
+		return
+	}
+
+	c.JSON(http.StatusOK, counts)
 }
 
 func parseLabelsParam(labelsStr string) []string {

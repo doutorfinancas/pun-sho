@@ -153,6 +153,62 @@
                 }
             }
         },
+        "/short/visits": {
+            "get": {
+                "description": "Returns lifetime visit and redirect totals, only for links with at least one visit at or after `since` (at most 90 days ago). Use it to sync counts incrementally instead of paging the whole list; overlap windows between polls (e.g. last poll minus a margin) because a visit committed just after a poll keeps an earlier created_at.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Short"
+                ],
+                "summary": "Visit totals for links visited since a timestamp",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "token",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "RFC3339 timestamp, e.g. 2026-11-02T00:00:00Z",
+                        "name": "since",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "comma separated labels; matches links with any of them",
+                        "name": "labels",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "response",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entity.ShortyVisitCount"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "error",
+                        "schema": {
+                            "$ref": "#/definitions/response.FailureResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "error",
+                        "schema": {
+                            "$ref": "#/definitions/response.FailureResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/short/{id}": {
             "get": {
                 "description": "retrieves full information for the give shortlink",
@@ -496,6 +552,20 @@
                 },
                 "user_agent": {
                     "type": "string"
+                }
+            }
+        },
+        "entity.ShortyVisitCount": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "redirects": {
+                    "type": "integer"
+                },
+                "visits": {
+                    "type": "integer"
                 }
             }
         },

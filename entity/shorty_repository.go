@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -40,6 +41,7 @@ func (r *ShortyRepository) List(limit, offset int) ([]*Shorty, error) {
 }
 
 func (r *ShortyRepository) ListWithAccessData(
+	ctx context.Context,
 	listWithQRCode bool,
 	labels []string,
 	status string,
@@ -74,7 +76,7 @@ func (r *ShortyRepository) ListWithAccessData(
 
 	if len(labels) > 0 {
 		conditions = append(conditions, "labels && ?")
-		args = append(args, fmt.Sprintf("{%s}", strings.Join(labels, ",")))
+		args = append(args, labelsArrayLiteral(labels))
 	}
 
 	switch status {
@@ -126,13 +128,24 @@ func (r *ShortyRepository) ListWithAccessData(
 
 	args = append(args, limit, offset)
 
-	if err := r.Database.Orm.Raw(query, args...).Scan(&rows).Error; err != nil {
+	if err := r.Database.Orm.WithContext(ctx).Raw(query, args...).Scan(&rows).Error; err != nil {
 		return nil, err
 	}
 
 	return rows, nil
 }
 
+// labelsArrayLiteral renders labels as a Postgres text[] literal for the && overlap operator.
+// Each element is quoted so labels such as NULL or ones containing commas stay literal strings.
+func labelsArrayLiteral(labels []string) string {
+	quoted := make([]string, len(labels))
+	for i, l := range labels {
+		l = strings.ReplaceAll(l, `\`, `\\`)
+		l = strings.ReplaceAll(l, `"`, `\"`)
+		quoted[i] = `"` + l + `"`
+	}
+	return "{" + strings.Join(quoted, ",") + "}"
+}
 
 func (r *ShortyRepository) DistinctLabels() ([]string, error) {
 	var labels []string
