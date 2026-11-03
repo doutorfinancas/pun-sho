@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"database/sql/driver"
 	"fmt"
 	"regexp"
@@ -15,9 +16,6 @@ import (
 	"github.com/doutorfinancas/pun-sho/entity"
 	"github.com/doutorfinancas/pun-sho/test"
 )
-
-
-
 
 func TestShortyService_Create(t *testing.T) {
 	type fields struct {
@@ -403,7 +401,7 @@ func TestShortyService_ListWithLabels(t *testing.T) {
 				shortyRepository: repo,
 			}
 
-			got, err := s.List(tt.args.withQR, tt.args.labels, "", nil, nil, tt.args.limit, tt.args.offset)
+			got, err := s.List(context.Background(), tt.args.withQR, tt.args.labels, "", nil, nil, tt.args.limit, tt.args.offset)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -524,20 +522,19 @@ func TestShortyService_UpdateWithLabels(t *testing.T) {
 }
 
 func formatLabelArray(labels []string) string {
-    if len(labels) == 0 {
-        return "{}"
-    }
-    return fmt.Sprintf("{%s}", strings.Join(labels, ","))
+	if len(labels) == 0 {
+		return "{}"
+	}
+	return fmt.Sprintf("{%s}", strings.Join(labels, ","))
 }
 
 func formatLabelArrayQuoted(labels []string) string {
-    if len(labels) == 0 {
-        return "{}"
-    }
-    quoted := make([]string, len(labels))
-    for i, label := range labels {
-        quoted[i] = fmt.Sprintf("\"%s\"", label)
-    }
-    return fmt.Sprintf("{%s}", strings.Join(quoted, ","))
+	if len(labels) == 0 {
+		return "{}"
+	}
+	quoted := make([]string, len(labels))
+	for i, label := range labels {
+		quoted[i] = fmt.Sprintf("\"%s\"", label)
+	}
+	return fmt.Sprintf("{%s}", strings.Join(quoted, ","))
 }
-

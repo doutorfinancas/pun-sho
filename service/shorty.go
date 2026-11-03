@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -279,13 +280,28 @@ func (s *ShortyService) CreateVisit(publicID string, req *request.Redirect) (*en
 	return sh, nil
 }
 
-func (s *ShortyService) List(withQR bool, labels []string, status string, from, to *time.Time, limit, offset int) ([]*entity.ShortyForList, error) {
-	shorties, err := s.shortyRepository.ListWithAccessData(withQR, labels, status, from, to, limit, offset)
+func (s *ShortyService) List(ctx context.Context, withQR bool, labels []string, status string, from, to *time.Time, limit, offset int) ([]*entity.ShortyForList, error) {
+	shorties, err := s.shortyRepository.ListWithAccessData(ctx, withQR, labels, status, from, to, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 
 	return shorties, nil
+}
+
+// MaxVisitCountsWindow bounds VisitCountsSince so a wide window cannot turn into a full scan.
+const MaxVisitCountsWindow = 90 * 24 * time.Hour
+
+func (s *ShortyService) VisitCountsSince(ctx context.Context, labels []string, since time.Time) ([]entity.ShortyVisitCount, error) {
+	now := time.Now()
+	if since.After(now) {
+		return nil, &ValidationError{Message: "since must not be in the future"}
+	}
+	if now.Sub(since) > MaxVisitCountsWindow {
+		return nil, &ValidationError{Message: "since must be within the last 90 days"}
+	}
+
+	return s.shortyAccessRepository.VisitCountsSince(ctx, labels, since)
 }
 
 func (s *ShortyService) AllLabels() ([]string, error) {

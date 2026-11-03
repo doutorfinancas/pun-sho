@@ -5,8 +5,8 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"io"
 	htmlpkg "html"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -305,9 +305,9 @@ func (h *FrontendHandler) htmxDashboardStats(c *gin.Context) {
 
 	stats := h.analyticsSvc.GlobalSummary(from, until)
 	renderTemplate(c, "stats_cards", gin.H{
-		"TotalLinks":  stats.TotalLinks,
-		"TotalClicks": stats.TotalClicks,
-		"ActiveLinks": stats.ActiveLinks,
+		"TotalLinks":   stats.TotalLinks,
+		"TotalClicks":  stats.TotalClicks,
+		"ActiveLinks":  stats.ActiveLinks,
 		"ExpiredLinks": stats.ExpiredLinks,
 	})
 }
@@ -344,7 +344,7 @@ func (h *FrontendHandler) htmxDashboardLabels(c *gin.Context) {
 }
 
 func (h *FrontendHandler) htmxDashboardRecent(c *gin.Context) {
-	links, err := h.shortySvc.List(false, nil, "", nil, nil, 5, 0)
+	links, err := h.shortySvc.List(c.Request.Context(), false, nil, "", nil, nil, 5, 0)
 	if err != nil {
 		c.String(http.StatusOK, `<p class="text-gray-500 text-center">No links found</p>`)
 		return
@@ -382,7 +382,7 @@ func (h *FrontendHandler) htmxLinksList(c *gin.Context) {
 		}
 	}
 
-	links, err := h.shortySvc.List(false, labels, status, from, to, 50, 0)
+	links, err := h.shortySvc.List(c.Request.Context(), false, labels, status, from, to, 50, 0)
 	if err != nil {
 		c.String(http.StatusOK, `<tr><td colspan="7" class="text-center text-gray-500">Error loading links</td></tr>`)
 		return
