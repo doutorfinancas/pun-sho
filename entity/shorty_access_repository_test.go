@@ -107,7 +107,7 @@ func TestShortyAccessRepository_VisitCountsSince(t *testing.T) {
 			name:     "with labels",
 			labels:   []string{"clinica", "promo"},
 			wantSQL:  `WHERE (SELECT s.labels FROM shorties s WHERE s.id = r.shorty_id) && $2 ORDER BY r.shorty_id`,
-			wantArgs: []driver.Value{since, "{clinica,promo}"},
+			wantArgs: []driver.Value{since, `{"clinica","promo"}`},
 		},
 	}
 

@@ -195,7 +195,7 @@ func (h *shortenerHandler) ListLinks(c *gin.Context) {
 // @Tags Short
 // @Summary Visit totals for links visited since a timestamp
 // @Schemes
-// @Description Returns lifetime visit and redirect totals, only for links with at least one visit at or after `since` (at most 90 days ago). Use it to sync counts incrementally instead of paging the whole list.
+// @Description Returns lifetime visit and redirect totals, only for links with at least one visit at or after `since` (at most 90 days ago). Use it to sync counts incrementally instead of paging the whole list; overlap windows between polls (e.g. last poll minus a margin) because a visit committed just after a poll keeps an earlier created_at.
 // @Param token header string false "Authorization token"
 // @Param since query string true "RFC3339 timestamp, e.g. 2026-11-02T00:00:00Z"
 // @Param labels query string false "comma separated labels; matches links with any of them"

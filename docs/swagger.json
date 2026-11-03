@@ -155,7 +155,7 @@
         },
         "/short/visits": {
             "get": {
-                "description": "Returns lifetime visit and redirect totals, only for links with at least one visit at or after `since` (at most 90 days ago). Use it to sync counts incrementally instead of paging the whole list.",
+                "description": "Returns lifetime visit and redirect totals, only for links with at least one visit at or after `since` (at most 90 days ago). Use it to sync counts incrementally instead of paging the whole list; overlap windows between polls (e.g. last poll minus a margin) because a visit committed just after a poll keeps an earlier created_at.",
                 "produces": [
                     "application/json"
                 ],

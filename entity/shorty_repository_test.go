@@ -22,3 +22,22 @@ func TestShortyRepository_ListWithAccessData_CancelledContext(t *testing.T) {
 
 	assert.ErrorIs(t, err, context.Canceled)
 }
+
+func TestLabelsArrayLiteral(t *testing.T) {
+	tests := []struct {
+		name   string
+		labels []string
+		want   string
+	}{
+		{name: "plain", labels: []string{"clinica", "promo"}, want: `{"clinica","promo"}`},
+		{name: "NULL stays a string", labels: []string{"NULL"}, want: `{"NULL"}`},
+		{name: "comma inside a label", labels: []string{"a,b"}, want: `{"a,b"}`},
+		{name: "quote and backslash escaped", labels: []string{`q"x`, `b\s`}, want: `{"q\"x","b\\s"}`},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, labelsArrayLiteral(tt.labels))
+		})
+	}
+}

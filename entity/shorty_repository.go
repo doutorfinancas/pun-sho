@@ -136,8 +136,15 @@ func (r *ShortyRepository) ListWithAccessData(
 }
 
 // labelsArrayLiteral renders labels as a Postgres text[] literal for the && overlap operator.
+// Each element is quoted so labels such as NULL or ones containing commas stay literal strings.
 func labelsArrayLiteral(labels []string) string {
-	return fmt.Sprintf("{%s}", strings.Join(labels, ","))
+	quoted := make([]string, len(labels))
+	for i, l := range labels {
+		l = strings.ReplaceAll(l, `\`, `\\`)
+		l = strings.ReplaceAll(l, `"`, `\"`)
+		quoted[i] = `"` + l + `"`
+	}
+	return "{" + strings.Join(quoted, ",") + "}"
 }
 
 func (r *ShortyRepository) DistinctLabels() ([]string, error) {

@@ -387,7 +387,7 @@ func TestShortyService_ListWithLabels(t *testing.T) {
 			// the CTE wrapper, the LEFT JOIN, the ORDER BY in both layers, and
 			// the bind arg positions.
 			if len(tt.args.labels) > 0 {
-				labelsArg := formatLabelArray(tt.args.labels)
+				labelsArg := formatLabelArrayQuoted(tt.args.labels)
 				mock.ExpectQuery(`WITH page AS \(.*FROM shorties WHERE labels && \$1.*ORDER BY created_at DESC.*LIMIT \$2 OFFSET \$3.*\).*LEFT JOIN shorty_accesses sa ON sa\.shorty_id = p\.id.*ORDER BY p\.created_at DESC`).
 					WithArgs(labelsArg, tt.args.limit, tt.args.offset).
 					WillReturnRows(mockRows)
@@ -519,13 +519,6 @@ func TestShortyService_UpdateWithLabels(t *testing.T) {
 			test.CheckMockDB(t, mock)
 		})
 	}
-}
-
-func formatLabelArray(labels []string) string {
-	if len(labels) == 0 {
-		return "{}"
-	}
-	return fmt.Sprintf("{%s}", strings.Join(labels, ","))
 }
 
 func formatLabelArrayQuoted(labels []string) string {
