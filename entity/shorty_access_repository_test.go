@@ -66,3 +66,21 @@ func TestDatabase_ListByShortyID(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel[0], *resultTest[0])
 }
+
+func TestShortyAccessRepository_CountRedirectsByShortyID(t *testing.T) {
+	m, db := test.NewMockDB()
+	defer test.CheckMockDB(t, m)
+
+	id := uuid.MustParse("cf07d8b6-89c5-4bb8-bc58-51cf831ea499")
+	req := `SELECT count(*) FROM "shorty_accesses" WHERE shorty_id = $1 AND status = $2`
+	m.ExpectQuery(regexp.QuoteMeta(req)).
+		WithArgs(id, "redirected").
+		WillReturnRows(test.GenerateMockRows([]string{"count"}, [][]driver.Value{{int64(42)}}))
+
+	repo := ShortyAccessRepository{Repository: test.NewMockRepository(db)}
+
+	got, err := repo.CountRedirectsByShortyID(id)
+
+	assert.NoError(t, err)
+	assert.Equal(t, int64(42), got)
+}

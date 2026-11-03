@@ -38,6 +38,16 @@ func (r *ShortyAccessRepository) CountByShortyID(id uuid.UUID) (visits, redirect
 	return row.Visits, row.Redirects, err
 }
 
+// CountRedirectsByShortyID counts only redirected accesses, served by idx_shorty_accesses_shorty_redirected.
+func (r *ShortyAccessRepository) CountRedirectsByShortyID(id uuid.UUID) (int64, error) {
+	var count int64
+	err := r.Database.Orm.
+		Model(&ShortyAccess{}).
+		Where("shorty_id = ? AND status = ?", id, "redirected").
+		Count(&count).Error
+	return count, err
+}
+
 // CountByShortyIDAndDateRange is the date-bounded equivalent of CountByShortyID.
 func (r *ShortyAccessRepository) CountByShortyIDAndDateRange(
 	id uuid.UUID, from, until *time.Time,

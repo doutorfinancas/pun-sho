@@ -1,6 +1,7 @@
 package test
 
 import (
+	"database/sql"
 	"database/sql/driver"
 	"log"
 	"testing"
@@ -18,6 +19,20 @@ func NewMockDB() (sqlmock.Sqlmock, *gorm.DB) {
 		log.Fatalf("can't create sqlmock: %s", err)
 	}
 
+	return mock, openGorm(db)
+}
+
+// NewMockDBWithConverter is NewMockDB for models whose Valuer the default sqlmock converter rejects.
+func NewMockDBWithConverter(c driver.ValueConverter) (sqlmock.Sqlmock, *gorm.DB) {
+	db, mock, err := sqlmock.New(sqlmock.ValueConverterOption(c))
+	if err != nil {
+		log.Fatalf("can't create sqlmock: %s", err)
+	}
+
+	return mock, openGorm(db)
+}
+
+func openGorm(db *sql.DB) *gorm.DB {
 	d := postgres.New(
 		postgres.Config{
 			Conn:       db,
@@ -27,10 +42,10 @@ func NewMockDB() (sqlmock.Sqlmock, *gorm.DB) {
 
 	gormDB, gerr := gorm.Open(d, &gorm.Config{})
 	if gerr != nil {
-		log.Fatalf("can't open gorm connection: %s", err)
+		log.Fatalf("can't open gorm connection: %s", gerr)
 	}
 
-	return mock, gormDB.Set("gorm:update_column", true)
+	return gormDB.Set("gorm:update_column", true)
 }
 
 func NewMockRepository(db *gorm.DB) database.Repository {
